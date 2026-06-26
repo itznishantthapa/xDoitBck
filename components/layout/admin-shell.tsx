@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboardIcon, PanelLeftIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { routes } from "@/lib/routes";
+import { useAuthStore } from "@/lib/store";
 
 const adminNavItems = [
   { title: "Overview", href: routes.admin.root },
@@ -30,6 +31,13 @@ const adminNavItems = [
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleSignOut = () => {
+    logout();
+    router.push(routes.auth);
+  };
 
   return (
     <SidebarProvider>
@@ -65,8 +73,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="border-t border-sidebar-border p-2">
-          <Button variant="outline" size="sm" className="w-full" asChild>
-            <Link href={routes.auth}>Sign out</Link>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={handleSignOut}
+          >
+            Sign out
           </Button>
         </SidebarFooter>
       </Sidebar>
