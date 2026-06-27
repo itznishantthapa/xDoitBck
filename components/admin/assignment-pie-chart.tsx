@@ -17,7 +17,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { DashboardMockData } from "@/lib/dashboardMockData";
 import { cn } from "@/lib/utils";
 
 const chartConfig = {
@@ -47,7 +46,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 type AssignmentPieChartProps = {
-  data: DashboardMockData["assignmentsPie"];
+  data: {
+    title: string;
+    description: string;
+    footerTrend: string;
+    footerNote: string;
+    data: {
+      status: "pending" | "review" | "completed" | "doing" | "rejected";
+      count: number;
+    }[];
+  };
   className?: string;
 };
 
@@ -149,12 +157,14 @@ export function AssignmentPieChart({ data, className }: AssignmentPieChartProps)
         </ul>
       </CardContent>
 
-      <CardFooter className="shrink-0 flex-col gap-1 border-t bg-muted/30 px-4 py-3 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
+      <CardFooter className="shrink-0 flex-col items-start gap-1 border-t bg-muted/30 px-4 py-3 text-left">
+        <div className="flex items-center gap-1.5 text-xs font-medium leading-tight text-foreground">
           {data.footerTrend}
-          <TrendingUp className="size-4 shrink-0" />
+          <TrendingUp className="size-3.5 shrink-0" />
         </div>
-        <div className="leading-snug text-muted-foreground">{data.footerNote}</div>
+        <p className="text-xs leading-snug text-muted-foreground">
+          {data.footerNote}
+        </p>
       </CardFooter>
     </Card>
   );

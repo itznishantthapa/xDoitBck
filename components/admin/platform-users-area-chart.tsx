@@ -25,7 +25,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { DashboardMockData } from "@/lib/dashboardMockData";
 import { cn } from "@/lib/utils";
 
 const chartConfig = {
@@ -43,7 +42,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 type PlatformUsersAreaChartProps = {
-  data: DashboardMockData["platformUsers"];
+  data: {
+    title: string;
+    description: string;
+    referenceDate: string;
+    data: {
+      date: string;
+      android: number;
+      ios: number;
+    }[];
+  };
   className?: string;
 };
 

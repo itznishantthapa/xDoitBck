@@ -4,20 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Analytics01Icon,
-  CustomerService01Icon,
-  GraduationCapIcon,
   Home01Icon,
   Logout01Icon,
-  Message01Icon,
-  Settings01Icon,
   UserMultipleIcon,
-  Video01Icon,
+  NoteIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
+import { AdminPageTitle } from "@/components/layout/admin-page-title";
 import {
   Tooltip,
   TooltipContent,
@@ -30,20 +26,43 @@ import {
   TEXT_DARK,
   WHITE,
 } from "@/lib/colors";
-import { getAdminPageTitle, mockedData } from "@/lib/mockedData";
 import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
+const brand = "Doit.";
+
+const navigation = [
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    href: routes.admin.dashboard,
+    icon: "dashboard",
+  },
+  {
+    id: "users",
+    label: "Users",
+    href: routes.admin.users,
+    icon: "users",
+  },
+  {
+    id: "assignments",
+    label: "Assignments",
+    href: routes.admin.assignments,
+    icon: "assignments",
+  }
+] as const;
+
+const pageTitles: Record<string, string> = {
+  [routes.admin.dashboard]: "Dashboard",
+  [routes.admin.users]: "Users",
+  [routes.admin.assignments]: "Assignments",
+};
+
 const navIcons = {
   dashboard: Home01Icon,
-  mentors: UserMultipleIcon,
-  students: GraduationCapIcon,
-  analytics: Analytics01Icon,
-  courses: Video01Icon,
-  forum: Message01Icon,
-  settings: Settings01Icon,
-  help: CustomerService01Icon,
+  users: UserMultipleIcon,
+  assignments: NoteIcon,
 } as const;
 
 function AppIcon({
@@ -109,7 +128,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
-  const title = getAdminPageTitle(pathname);
+  const title = pageTitles[pathname] ?? "Dashboard";
   const isDashboard = pathname === routes.admin.dashboard;
 
   const handleSignOut = () => {
@@ -135,12 +154,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Link
               href={routes.admin.dashboard}
               prefetch={false}
-              aria-label={mockedData.sidebar.brand}
+              aria-label={brand}
               className={cn("mx-auto mb-6 block shrink-0 overflow-hidden", adminTokens.sidebarLogoRadius)}
             >
               <Image
                 src="/logo.png"
-                alt={mockedData.sidebar.brand}
+                alt={brand}
                 width={44}
                 height={44}
                 className={cn("size-11 object-cover", adminTokens.sidebarLogoRadius)}
@@ -150,8 +169,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
             <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
               <SidebarAnimatedNav
-                mainItems={mockedData.sidebar.navigation}
-                footerItems={mockedData.sidebar.footerNavigation}
+                mainItems={navigation}
+                footerItems={[]}
                 pathname={pathname}
                 icons={navIcons}
               />
@@ -172,12 +191,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <main className="flex h-svh min-w-0 flex-1 flex-col overflow-hidden">
           {!isDashboard ? (
             <header className="shrink-0 px-6 pb-2 pt-7 md:px-8">
-              <h1
-                className="text-[28px] font-bold tracking-tight md:text-[32px]"
-                style={{ color: TEXT_DARK }}
-              >
-                {title}
-              </h1>
+              <AdminPageTitle title={title} />
             </header>
           ) : null}
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-4 pt-1 md:px-8">
