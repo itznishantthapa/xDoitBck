@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import SubmitButton from "@/components/custom/SubmitButton";
@@ -24,7 +24,7 @@ function getInputStyle(hasError: boolean): React.CSSProperties {
 }
 
 export default function AuthPage() {
-  const { user, login, isLoading } = useAuthStore();
+  const { login, isLoading } = useAuthStore();
   const router = useRouter();
 
   const [username, setUsername] = useState("");
@@ -32,12 +32,6 @@ export default function AuthPage() {
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [submitError, setSubmitError] = useState("");
-
-  useEffect(() => {
-    if (user) {
-      router.replace(routes.admin.root);
-    }
-  }, [user, router]);
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,20 +51,16 @@ export default function AuthPage() {
 
     try {
       await login({ username: trimmedUsername, password: trimmedPassword });
-      router.replace(routes.admin.root);
+      router.replace(routes.admin.dashboard);
     } catch (err) {
       console.error("Login attempt failed:", err);
       setSubmitError("Could not sign in. Please try again.");
     }
   };
 
-  if (user) {
-    return null;
-  }
-
   return (
     <div
-      className="rounded-3xl p-6 shadow-sm sm:p-8"
+      className="rounded-3xl p-6 shadow-none sm:p-8 border-0 border-none"
       style={{ backgroundColor: colors.theWhite }}
     >
       <div className="mb-8 text-center">

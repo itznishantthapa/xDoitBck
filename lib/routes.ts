@@ -2,7 +2,13 @@ export const routes = {
   auth: "/auth",
   admin: {
     root: "/admin",
-    page1: "/admin/page1",
-    page2: "/admin/page2",
+    dashboard: "/admin/dashboard",
+    mentors: "/admin/mentors",
+    students: "/admin/students",
+    analytics: "/admin/analytics",
+    courses: "/admin/courses",
+    forum: "/admin/forum",
+    settings: "/admin/settings",
+    help: "/admin/help",
   },
 } as const;

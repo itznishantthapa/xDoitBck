@@ -36,9 +36,10 @@ export default function SubmitButton({
       {...props}
     >
       {loader ? (
-        <div className="flex h-full items-center justify-center">
-          <BeatLoader size={12} margin={3} color={loaderColor} />
-        </div>
+        // <div className="flex h-full items-center justify-center">
+        //   <BeatLoader size={12} margin={3} color={loaderColor} />
+        // </div>
+        <span className="animate-pulse">Logging...</span>
       ) : (
         buttonTitle
       )}

@@ -21,11 +21,26 @@ interface AuthState {
   logout: () => void;
 }
 
+function readStoredUser(): UserProfile | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const token = Cookies.get("auth_token");
+  if (!token) {
+    localStorage.removeItem("doit_user");
+    return null;
+  }
+
+  try {
+    return JSON.parse(localStorage.getItem("doit_user") || "null");
+  } catch {
+    return null;
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user:
-    typeof window !== "undefined"
-      ? JSON.parse(localStorage.getItem("doit_user") || "null")
-      : null,
+  user: readStoredUser(),
   accessToken:
     typeof window !== "undefined" ? Cookies.get("auth_token") || null : null,
   isLoading: false,
@@ -34,10 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true });
 
     try {
-
-      //promise for 5 sec for delay
       await new Promise((resolve) => setTimeout(resolve, 5000));
-
 
       const mockApiResponse = {
         accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mockTokenString...",
