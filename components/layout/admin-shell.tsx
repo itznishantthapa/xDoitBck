@@ -17,13 +17,19 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 
+import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { adminTokens, colors } from "@/lib/colors";
+import {
+  adminTokens,
+  BOOKED_TEXT,
+  TEXT_DARK,
+  WHITE,
+} from "@/lib/colors";
 import { getAdminPageTitle, mockedData } from "@/lib/mockedData";
 import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
@@ -64,58 +70,11 @@ function AppIcon({
   );
 }
 
-function NavIconLink({
-  href,
-  label,
-  icon,
-  isActive,
-}: {
-  href: string;
-  label: string;
-  icon: (typeof navIcons)[keyof typeof navIcons];
-  isActive?: boolean;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          href={href}
-          prefetch={false}
-          aria-label={label}
-          className={cn(
-            "relative flex h-11 w-full items-center justify-center transition-colors",
-            !isActive && "rounded-xl hover:bg-white/10"
-          )}
-        >
-          {isActive ? (
-            <span
-              aria-hidden
-              className="absolute inset-y-0 -right-[calc(0.5rem+1px)] left-0 z-0 rounded-l-2xl rounded-r-none"
-              style={{ backgroundColor: colors.canvasTint }}
-            />
-          ) : null}
-          <AppIcon
-            icon={icon}
-            size={20}
-            className="relative z-10"
-            color={
-              isActive ? colors.sidebarRailActiveFg : colors.sidebarRailFg
-            }
-          />
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={12}>
-        {label}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 function NavIconButton({
   label,
   icon,
   onClick,
-  iconColor = colors.sidebarRailFg,
+  iconColor = WHITE,
   hoverClassName = "hover:bg-white/10",
 }: {
   label: string;
@@ -151,6 +110,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
   const title = getAdminPageTitle(pathname);
+  const isDashboard = pathname === routes.admin.dashboard;
 
   const handleSignOut = () => {
     logout();
@@ -161,16 +121,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     <TooltipProvider delayDuration={200}>
       <div
         className="flex min-h-svh w-full"
-        style={{ backgroundColor: colors.theWhite }}
+        style={{ backgroundColor: WHITE }}
       >
-        <aside className="sticky top-0 flex h-svh w-23 shrink-0 justify-center py-4 pl-4">
+        <aside className="sticky top-0 z-20 flex h-svh w-23 shrink-0 justify-center overflow-visible py-4 pl-4">
           <nav
             aria-label="Admin navigation"
             className={cn(
-              "flex h-[calc(100svh-2rem)] w-17 flex-col overflow-visible py-4 shadow-[0_8px_30px_rgba(0,0,0,0.12)]",
+              "flex h-[calc(100svh-2rem)] w-17 flex-col overflow-visible py-4",
               adminTokens.sidebarRailRadius
             )}
-            style={{ backgroundColor: colors.sidebarRailBg }}
+            style={{ backgroundColor: TEXT_DARK }}
           >
             <Link
               href={routes.admin.dashboard}
@@ -188,57 +148,39 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               />
             </Link>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-x-visible overflow-y-auto px-2">
-              {mockedData.sidebar.navigation.map((item) => {
-                const icon = navIcons[item.icon as keyof typeof navIcons];
-
-                return (
-                  <NavIconLink
-                    key={item.id}
-                    href={item.href}
-                    label={item.label}
-                    icon={icon}
-                    isActive={pathname === item.href}
-                  />
-                );
-              })}
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
+              <SidebarAnimatedNav
+                mainItems={mockedData.sidebar.navigation}
+                footerItems={mockedData.sidebar.footerNavigation}
+                pathname={pathname}
+                icons={navIcons}
+              />
             </div>
 
-            <div className="mt-4 flex shrink-0 flex-col gap-1 px-2">
-              {mockedData.sidebar.footerNavigation.map((item) => {
-                const icon = navIcons[item.icon as keyof typeof navIcons];
-
-                return (
-                  <NavIconLink
-                    key={item.id}
-                    href={item.href}
-                    label={item.label}
-                    icon={icon}
-                    isActive={pathname === item.href}
-                  />
-                );
-              })}
+            <div className="mt-4 shrink-0 pl-2">
               <NavIconButton
                 label="Log out"
                 icon={Logout01Icon}
                 onClick={handleSignOut}
                 hoverClassName="hover:bg-red-500/15"
-                iconColor="#f87171"
+                iconColor={BOOKED_TEXT}
               />
             </div>
           </nav>
         </aside>
 
-        <main
-          className="min-h-svh min-w-0 flex-1"
-          style={{ backgroundColor: colors.theWhite }}
-        >
-          <header className="px-6 pb-2 pt-7 md:px-8">
-            <h1 className="text-[28px] font-bold tracking-tight text-zinc-900 md:text-[32px]">
-              {title}
-            </h1>
-          </header>
-          <div className="flex flex-1 flex-col px-6 pb-8 pt-1 md:px-8">
+        <main className="flex h-svh min-w-0 flex-1 flex-col overflow-hidden">
+          {!isDashboard ? (
+            <header className="shrink-0 px-6 pb-2 pt-7 md:px-8">
+              <h1
+                className="text-[28px] font-bold tracking-tight md:text-[32px]"
+                style={{ color: TEXT_DARK }}
+              >
+                {title}
+              </h1>
+            </header>
+          ) : null}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-4 pt-1 md:px-8">
             {children}
           </div>
         </main>

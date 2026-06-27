@@ -3,7 +3,7 @@
 import { BeatLoader } from "react-spinners";
 
 import { Button } from "@/components/ui/button";
-import { colors } from "@/lib/colors";
+import { TEXT_DARK } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 type SubmitButtonProps = React.ComponentProps<typeof Button> & {
@@ -19,7 +19,7 @@ export default function SubmitButton({
   disabled = false,
   buttonTitle,
   loader = false,
-  loaderColor = colors.theSoftBlack,
+  loaderColor = TEXT_DARK,
   className,
   variant = "default",
   ...props

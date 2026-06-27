@@ -4,22 +4,28 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import SubmitButton from "@/components/custom/SubmitButton";
-import { colors } from "@/lib/colors";
+import {
+  BG_BUTTON,
+  BOOKED_TEXT,
+  BORDER,
+  GHOSTWHITE,
+  TEXT_DARK,
+  TEXT_MUTED,
+  WHITE,
+} from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
 
-const ERROR_COLOR = "#DC2626";
-
 const inputClassName = cn(
-  "h-[52px] w-full rounded-2xl border-[1.5px] px-4 text-[15px] font-medium outline-none transition-colors"
+  "h-[52px] w-full rounded-2xl border-[1.5px] px-4 text-[15px] font-medium outline-none transition-colors placeholder:text-[var(--text-muted)]"
 );
 
 function getInputStyle(hasError: boolean): React.CSSProperties {
   return {
-    color: colors.theSoftBlack,
-    backgroundColor: colors.theWhite,
-    borderColor: hasError ? ERROR_COLOR : colors.bgColor,
+    color: TEXT_DARK,
+    backgroundColor: WHITE,
+    borderColor: hasError ? BOOKED_TEXT : BORDER,
   };
 }
 
@@ -60,30 +66,35 @@ export default function AuthPage() {
 
   return (
     <div
-      className="rounded-3xl p-6 shadow-none sm:p-8 border-0 border-none"
-      style={{ backgroundColor: colors.theWhite }}
+      className="rounded-3xl border-0 border-none p-6 shadow-none sm:p-8"
+      style={{ backgroundColor: GHOSTWHITE }}
     >
       <div className="mb-8 text-center">
         <h1
           className="text-2xl font-bold tracking-tight"
-          style={{ color: colors.theSoftBlack }}
+          style={{ color: TEXT_DARK }}
         >
           Doit App
         </h1>
         <p
           className="mt-2 text-[13px] leading-[19px]"
-          style={{ color: colors.theSoftGrey }}
+          style={{ color: TEXT_MUTED }}
         >
           Authenticate yourself to access the admin panel.
         </p>
       </div>
 
-      <form onSubmit={handleLoginSubmit} className="space-y-5" noValidate>
+      <form
+        onSubmit={handleLoginSubmit}
+        className="space-y-5"
+        style={{ ["--text-muted" as string]: TEXT_MUTED }}
+        noValidate
+      >
         <div>
           <label
             htmlFor="username"
             className="mb-1.5 block text-base font-bold tracking-tight"
-            style={{ color: colors.theSoftBlack }}
+            style={{ color: TEXT_DARK }}
           >
             Username
           </label>
@@ -97,11 +108,11 @@ export default function AuthPage() {
               setUsername(e.target.value);
               if (e.target.value.trim()) setUsernameError(false);
             }}
-            className={cn(inputClassName, "placeholder:text-[#8f8e8e]")}
+            className={inputClassName}
             style={getInputStyle(usernameError)}
           />
           {usernameError ? (
-            <p className="mt-2 text-xs" style={{ color: ERROR_COLOR }}>
+            <p className="mt-2 text-xs" style={{ color: BOOKED_TEXT }}>
               Required
             </p>
           ) : null}
@@ -111,7 +122,7 @@ export default function AuthPage() {
           <label
             htmlFor="password"
             className="mb-1.5 block text-base font-bold tracking-tight"
-            style={{ color: colors.theSoftBlack }}
+            style={{ color: TEXT_DARK }}
           >
             Password
           </label>
@@ -125,18 +136,18 @@ export default function AuthPage() {
               setPassword(e.target.value);
               if (e.target.value.trim()) setPasswordError(false);
             }}
-            className={cn(inputClassName, "placeholder:text-[#8f8e8e]")}
+            className={inputClassName}
             style={getInputStyle(passwordError)}
           />
           {passwordError ? (
-            <p className="mt-2 text-xs" style={{ color: ERROR_COLOR }}>
+            <p className="mt-2 text-xs" style={{ color: BOOKED_TEXT }}>
               Required
             </p>
           ) : null}
         </div>
 
         {submitError ? (
-          <p className="text-xs" style={{ color: ERROR_COLOR }}>
+          <p className="text-xs" style={{ color: BOOKED_TEXT }}>
             {submitError}
           </p>
         ) : null}
@@ -145,8 +156,8 @@ export default function AuthPage() {
           type="submit"
           className="w-full border-0 hover:opacity-90"
           style={{
-            backgroundColor: colors.theGreen,
-            color: colors.theSoftBlack,
+            backgroundColor: BG_BUTTON,
+            color: TEXT_DARK,
           }}
           buttonTitle="Login"
           loader={isLoading}

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { colors } from "@/lib/colors";
+import { WHITE } from "@/lib/colors";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -15,7 +15,7 @@ export default function AuthLayout({
   return (
     <div
       className="flex min-h-full flex-1 items-center justify-center px-5 py-12"
-      style={{ backgroundColor: colors.bgColor }}
+      style={{ backgroundColor: WHITE }}
     >
       <div className="w-full max-w-md">{children}</div>
     </div>
