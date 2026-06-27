@@ -58,6 +58,14 @@ type AssignmentsTableProps = {
   pageSize?: number;
 };
 
+const statusTabs: { value: AssignmentStatus; label: string }[] = [
+  { value: "pending", label: "Pending" },
+  { value: "review", label: "Review" },
+  { value: "doing", label: "Doing" },
+  { value: "completed", label: "Completed" },
+  { value: "rejected", label: "Rejected" },
+];
+
 const statusStyles: Record<
   AssignmentStatus,
   { label: string; className: string }
@@ -130,19 +138,23 @@ export function AssignmentsTable({
 }: AssignmentsTableProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<AssignmentStatus>("pending");
 
   const filteredAssignments = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return assignments;
 
-    return assignments.filter(
-      (assignment) =>
+    return assignments.filter((assignment) => {
+      if (assignment.status !== statusFilter) return false;
+      if (!query) return true;
+
+      return (
         assignment.name.toLowerCase().includes(query) ||
         assignment.user.toLowerCase().includes(query) ||
         assignment.assignmentType.toLowerCase().includes(query) ||
         assignment.status.toLowerCase().includes(query)
-    );
-  }, [assignments, search]);
+      );
+    });
+  }, [assignments, search, statusFilter]);
 
   const totalPages = Math.max(
     1,
@@ -156,7 +168,7 @@ export function AssignmentsTable({
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, statusFilter]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -211,6 +223,30 @@ export function AssignmentsTable({
           />
         </label>
       </CardHeader>
+
+      <div className="flex shrink-0 flex-wrap gap-2 border-b px-4 py-3">
+        {statusTabs.map((tab) => {
+          const isActive = statusFilter === tab.value;
+          const style = statusStyles[tab.value];
+
+          return (
+            <Button
+              key={tab.value}
+              type="button"
+              variant="outline"
+              size="sm"
+              aria-pressed={isActive}
+              onClick={() => setStatusFilter(tab.value)}
+              className={cn(
+                "rounded-lg border-transparent bg-transparent shadow-none ring-1 ring-foreground/10",
+                isActive && cn("ring-0", style.className)
+              )}
+            >
+              {tab.label}
+            </Button>
+          );
+        })}
+      </div>
 
       <CardContent className="min-h-0 flex-1 overflow-auto p-0">
         <Table>

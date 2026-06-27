@@ -5,5 +5,7 @@ export const routes = {
     dashboard: "/admin/dashboard",
     users: "/admin/users",
     assignments: "/admin/assignments",
+    working: "/admin/working",
+    pushNotification: "/admin/push-notification",
   },
 } as const;

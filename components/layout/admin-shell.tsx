@@ -4,16 +4,20 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Folder01Icon,
   Home01Icon,
   Logout01Icon,
+  NoteIcon,
+  NotificationSquareIcon,
   UserMultipleIcon,
-  NoteIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
 import { AdminPageTitle } from "@/components/layout/admin-page-title";
+import { assignments } from "@/app/admin/assignments/page";
+import { workingAssignments } from "@/app/admin/working/page";
 import {
   Tooltip,
   TooltipContent,
@@ -50,19 +54,43 @@ const navigation = [
     label: "Assignments",
     href: routes.admin.assignments,
     icon: "assignments",
-  }
+  },
+  {
+    id: "working",
+    label: "Working",
+    href: routes.admin.working,
+    icon: "working",
+  },
+] as const;
+
+const footerNavigation = [
+  {
+    id: "push-notification",
+    label: "Push Notification",
+    href: routes.admin.pushNotification,
+    icon: "push-notification",
+  },
 ] as const;
 
 const pageTitles: Record<string, string> = {
   [routes.admin.dashboard]: "Dashboard",
   [routes.admin.users]: "Users",
   [routes.admin.assignments]: "Assignments",
+  [routes.admin.working]: "Working",
+  [routes.admin.pushNotification]: "Push Notification",
 };
 
 const navIcons = {
   dashboard: Home01Icon,
   users: UserMultipleIcon,
   assignments: NoteIcon,
+  working: Folder01Icon,
+  "push-notification": NotificationSquareIcon,
+} as const;
+
+const navBadges = {
+  assignments: assignments.filter((item) => item.status === "pending").length,
+  working: workingAssignments.length,
 } as const;
 
 function AppIcon({
@@ -170,9 +198,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
               <SidebarAnimatedNav
                 mainItems={navigation}
-                footerItems={[]}
+                footerItems={footerNavigation}
                 pathname={pathname}
                 icons={navIcons}
+                badges={navBadges}
               />
             </div>
 

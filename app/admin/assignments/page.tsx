@@ -3,7 +3,7 @@ import {
   type AssignmentRow,
 } from "@/components/admin/assignments-table";
 
-const assignments: AssignmentRow[] = [
+export const assignments: AssignmentRow[] = [
   {
     id: "1",
     name: "Marketing Strategy Essay",

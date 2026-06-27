@@ -54,41 +54,57 @@ function SidebarNavLink({
   label,
   icon,
   isActive,
+  badgeCount,
   registerRef,
 }: {
   href: string;
   label: string;
   icon: IconSvgElement;
   isActive: boolean;
+  badgeCount?: number;
   registerRef: (href: string, node: HTMLAnchorElement | null) => void;
 }) {
+  const showBadge = badgeCount !== undefined && badgeCount > 0;
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Link
           href={href}
           prefetch={false}
-          aria-label={label}
+          aria-label={
+            showBadge ? `${label}, ${badgeCount} notifications` : label
+          }
           aria-current={isActive ? "page" : undefined}
           ref={(node) => registerRef(href, node)}
           className="group relative z-10 flex h-14 w-full items-center justify-center outline-none"
         >
-          <HugeiconsIcon
-            icon={icon}
-            size={20}
-            color={isActive ? TEXT_DARK : WHITE}
-            strokeWidth={isActive ? 2 : 1.75}
-            className={cn(
-              "relative z-10 shrink-0 transition-all duration-300",
-              isActive
-                ? "scale-110"
-                : "text-zinc-400 group-hover:scale-105 group-hover:text-zinc-200"
-            )}
-          />
+          <span className="relative inline-flex items-center justify-center">
+            <HugeiconsIcon
+              icon={icon}
+              size={20}
+              color={isActive ? TEXT_DARK : WHITE}
+              strokeWidth={isActive ? 2 : 1.75}
+              className={cn(
+                "relative z-0 shrink-0 transition-all duration-300",
+                isActive
+                  ? "scale-110"
+                  : "text-zinc-400 group-hover:scale-105 group-hover:text-zinc-200"
+              )}
+            />
+            {showBadge ? (
+              <span
+                aria-hidden
+                className="absolute -right-2.5 -top-2.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#895ef6] px-1 text-[10px] font-bold leading-none text-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]"
+              >
+                {badgeCount > 99 ? "99+" : badgeCount}
+              </span>
+            ) : null}
+          </span>
         </Link>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={12}>
-        {label}
+        {showBadge ? `${label} (${badgeCount})` : label}
       </TooltipContent>
     </Tooltip>
   );
@@ -99,12 +115,14 @@ export function SidebarAnimatedNav({
   footerItems,
   pathname,
   icons,
+  badges,
   className,
 }: {
   mainItems: readonly NavItem[];
   footerItems: readonly NavItem[];
   pathname: string;
   icons: Record<string, IconSvgElement>;
+  badges?: Record<string, number>;
   className?: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -169,6 +187,7 @@ export function SidebarAnimatedNav({
         label={item.label}
         icon={icon}
         isActive={activeHref === item.href}
+        badgeCount={badges?.[item.id]}
         registerRef={registerRef}
       />
     );
