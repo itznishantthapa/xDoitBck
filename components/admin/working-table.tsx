@@ -28,31 +28,35 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+export type WorkingAssignmentRow = AssignmentRow & {
+  addedBy: string;
+};
+
 type WorkingTableProps = {
-  assignments: AssignmentRow[];
+  assignments: WorkingAssignmentRow[];
   pageSize?: number;
 };
 
 const statusStyles = {
   pending: {
     label: "Pending",
-    className: "bg-[#895ef6]/10 text-[#895ef6]",
+    className: "border-[#895ef6] text-[#895ef6]",
   },
   review: {
     label: "Review",
-    className: "bg-[#4da1f7]/10 text-[#4da1f7]",
+    className: "border-[#4da1f7] text-[#4da1f7]",
   },
   completed: {
     label: "Completed",
-    className: "bg-[#7ae3aa]/10 text-[#2f6b52]",
+    className: "border-emerald-600 text-emerald-600",
   },
   doing: {
     label: "Doing",
-    className: "bg-[#f1cd3b]/15 text-[#9a7b0a]",
+    className: "border-[#c9a208] text-[#9a7b0a]",
   },
   rejected: {
     label: "Rejected",
-    className: "bg-[#f03063]/10 text-[#f03063]",
+    className: "border-[#f03063] text-[#f03063]",
   },
 } as const;
 
@@ -66,7 +70,7 @@ function AssignmentStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize",
+        "inline-flex rounded-md border px-1.5 py-0.5 text-xs font-medium capitalize",
         config.className
       )}
     >
@@ -79,10 +83,10 @@ function PaidBadge({ value }: { value: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
+        "inline-flex rounded-md border px-1.5 py-0.5 text-xs font-medium",
         value
-          ? "bg-emerald-500/10 text-emerald-600"
-          : "bg-muted text-muted-foreground"
+          ? "border-emerald-600 text-emerald-600"
+          : "border-[#f03063] text-[#f03063]"
       )}
     >
       {value ? "Yes" : "No"}
@@ -90,14 +94,35 @@ function PaidBadge({ value }: { value: boolean }) {
   );
 }
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-
-  return new Date(value).toLocaleDateString("en-US", {
+function formatAssignmentDateRange(
+  providedAt: string | null,
+  deliveryDate: string
+) {
+  const delivery = new Date(deliveryDate);
+  const deliveryLabel = delivery.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
+
+  if (!providedAt) {
+    return deliveryLabel;
+  }
+
+  const provided = new Date(providedAt);
+  const startLabel =
+    provided.getFullYear() === delivery.getFullYear()
+      ? provided.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      : provided.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+
+  return `${startLabel} - ${deliveryLabel}`;
 }
 
 export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
@@ -145,8 +170,8 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
               <TableHead>Assignment type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Is paid</TableHead>
-              <TableHead>Delivery date</TableHead>
-              <TableHead className="pr-4">Provided at</TableHead>
+              <TableHead>Added by</TableHead>
+              <TableHead className="pr-4">Date</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -172,10 +197,13 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                   <PaidBadge value={assignment.isPaid} />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {formatDate(assignment.deliveryDate)}
+                  {assignment.addedBy}
                 </TableCell>
                 <TableCell className="pr-4 text-muted-foreground">
-                  {formatDate(assignment.providedAt)}
+                  {formatAssignmentDateRange(
+                    assignment.providedAt,
+                    assignment.deliveryDate
+                  )}
                 </TableCell>
               </TableRow>
             ))}

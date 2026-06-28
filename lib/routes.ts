@@ -6,6 +6,6 @@ export const routes = {
     users: "/admin/users",
     assignments: "/admin/assignments",
     working: "/admin/working",
-    pushNotification: "/admin/push-notification",
+    calendar: "/admin/calendar",
   },
 } as const;

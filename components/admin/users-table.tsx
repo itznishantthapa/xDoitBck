@@ -57,18 +57,19 @@ function StatusBadge({
   value: boolean;
   variant: "active" | "suspended";
 }) {
-  const isPositive =
-    variant === "active" ? value : !value;
+  const isActiveYes = variant === "active" && value;
+  const isActiveNo = variant === "active" && !value;
+  const isSuspendedYes = variant === "suspended" && value;
+  const isSuspendedNo = variant === "suspended" && !value;
 
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
-        isPositive
-          ? "bg-emerald-500/10 text-emerald-600"
-          : variant === "suspended" && value
-            ? "bg-orange-500/10 text-orange-600"
-            : "bg-muted text-muted-foreground"
+        "inline-flex rounded-md border px-1.5 py-0.5 text-xs font-medium",
+        isActiveYes && "border-emerald-600 text-emerald-600",
+        isActiveNo && "border-[#f03063] text-[#f03063]",
+        isSuspendedYes && "border-orange-600 text-orange-600",
+        isSuspendedNo && "border-emerald-600 text-emerald-600"
       )}
     >
       {value ? "Yes" : "No"}

@@ -3,6 +3,7 @@
 import {
   Delete02Icon,
   Edit02Icon,
+  FolderAddIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -72,23 +73,23 @@ const statusStyles: Record<
 > = {
   pending: {
     label: "Pending",
-    className: "bg-[#895ef6]/10 text-[#895ef6]",
+    className: "border-[#895ef6] text-[#895ef6]",
   },
   review: {
     label: "Review",
-    className: "bg-[#4da1f7]/10 text-[#4da1f7]",
+    className: "border-[#4da1f7] text-[#4da1f7]",
   },
   completed: {
     label: "Completed",
-    className: "bg-[#7ae3aa]/10 text-[#2f6b52]",
+    className: "border-emerald-600 text-emerald-600",
   },
   doing: {
     label: "Doing",
-    className: "bg-[#f1cd3b]/15 text-[#9a7b0a]",
+    className: "border-[#c9a208] text-[#9a7b0a]",
   },
   rejected: {
     label: "Rejected",
-    className: "bg-[#f03063]/10 text-[#f03063]",
+    className: "border-[#f03063] text-[#f03063]",
   },
 };
 
@@ -98,7 +99,7 @@ function AssignmentStatusBadge({ status }: { status: AssignmentStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium capitalize",
+        "inline-flex rounded-md border px-1.5 py-0.5 text-xs font-medium capitalize",
         config.className
       )}
     >
@@ -111,10 +112,10 @@ function PaidBadge({ value }: { value: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex rounded-md px-2 py-0.5 text-xs font-medium",
+        "inline-flex rounded-md border px-1.5 py-0.5 text-xs font-medium",
         value
-          ? "bg-emerald-500/10 text-emerald-600"
-          : "bg-muted text-muted-foreground"
+          ? "border-emerald-600 text-emerald-600"
+          : "border-[#f03063] text-[#f03063]"
       )}
     >
       {value ? "Yes" : "No"}
@@ -238,8 +239,10 @@ export function AssignmentsTable({
               aria-pressed={isActive}
               onClick={() => setStatusFilter(tab.value)}
               className={cn(
-                "rounded-lg border-transparent bg-transparent shadow-none ring-1 ring-foreground/10",
-                isActive && cn("ring-0", style.className)
+                "rounded-lg border bg-transparent shadow-none",
+                isActive
+                  ? style.className
+                  : "border-transparent text-muted-foreground ring-1 ring-foreground/10"
               )}
             >
               {tab.label}
@@ -292,6 +295,19 @@ export function AssignmentsTable({
                 </TableCell>
                 <TableCell className="pr-4">
                   <div className="flex items-center justify-end gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Add ${assignment.name} to working`}
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        console.log("added to working");
+                      }}
+                    >
+                      <HugeiconsIcon icon={FolderAddIcon} size={16} strokeWidth={1.75} />
+                    </Button>
                     <Button
                       type="button"
                       variant="ghost"

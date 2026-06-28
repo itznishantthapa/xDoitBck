@@ -4,11 +4,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  CalendarDaysIcon,
   Folder01Icon,
   Home01Icon,
   Logout01Icon,
   NoteIcon,
-  NotificationSquareIcon,
   UserMultipleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   adminTokens,
+  BG_SIDEBAR,
   BOOKED_TEXT,
   TEXT_DARK,
   WHITE,
@@ -42,6 +43,12 @@ const navigation = [
     label: "Dashboard",
     href: routes.admin.dashboard,
     icon: "dashboard",
+  },
+  {
+    id: "calendar",
+    label: "Calendar",
+    href: routes.admin.calendar,
+    icon: "calendar",
   },
   {
     id: "users",
@@ -63,21 +70,12 @@ const navigation = [
   },
 ] as const;
 
-const footerNavigation = [
-  {
-    id: "push-notification",
-    label: "Push Notification",
-    href: routes.admin.pushNotification,
-    icon: "push-notification",
-  },
-] as const;
-
 const pageTitles: Record<string, string> = {
   [routes.admin.dashboard]: "Dashboard",
   [routes.admin.users]: "Users",
   [routes.admin.assignments]: "Assignments",
   [routes.admin.working]: "Working",
-  [routes.admin.pushNotification]: "Push Notification",
+  [routes.admin.calendar]: "Calendar",
 };
 
 const navIcons = {
@@ -85,7 +83,7 @@ const navIcons = {
   users: UserMultipleIcon,
   assignments: NoteIcon,
   working: Folder01Icon,
-  "push-notification": NotificationSquareIcon,
+  calendar: CalendarDaysIcon,
 } as const;
 
 const navBadges = {
@@ -138,7 +136,7 @@ function NavIconButton({
           aria-label={label}
           onClick={onClick}
           className={cn(
-            "flex h-11 w-full items-center justify-center rounded-xl transition-colors",
+            "flex h-11 w-full cursor-pointer items-center justify-center rounded-xl transition-colors",
             hoverClassName
           )}
         >
@@ -177,7 +175,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               "flex h-[calc(100svh-2rem)] w-17 flex-col overflow-visible py-4",
               adminTokens.sidebarRailRadius
             )}
-            style={{ backgroundColor: TEXT_DARK }}
+            style={{ backgroundColor: BG_SIDEBAR }}
           >
             <Link
               href={routes.admin.dashboard}
@@ -198,7 +196,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
               <SidebarAnimatedNav
                 mainItems={navigation}
-                footerItems={footerNavigation}
                 pathname={pathname}
                 icons={navIcons}
                 badges={navBadges}

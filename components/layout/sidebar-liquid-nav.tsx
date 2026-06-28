@@ -77,7 +77,7 @@ function SidebarNavLink({
           }
           aria-current={isActive ? "page" : undefined}
           ref={(node) => registerRef(href, node)}
-          className="group relative z-10 flex h-14 w-full items-center justify-center outline-none"
+          className="group relative z-10 flex h-14 w-full cursor-pointer items-center justify-center outline-none"
         >
           <span className="relative inline-flex items-center justify-center">
             <HugeiconsIcon
@@ -89,7 +89,7 @@ function SidebarNavLink({
                 "relative z-0 shrink-0 transition-all duration-300",
                 isActive
                   ? "scale-110"
-                  : "text-zinc-400 group-hover:scale-105 group-hover:text-zinc-200"
+                  : "text-white group-hover:scale-105"
               )}
             />
             {showBadge ? (
@@ -112,14 +112,12 @@ function SidebarNavLink({
 
 export function SidebarAnimatedNav({
   mainItems,
-  footerItems,
   pathname,
   icons,
   badges,
   className,
 }: {
   mainItems: readonly NavItem[];
-  footerItems: readonly NavItem[];
   pathname: string;
   icons: Record<string, IconSvgElement>;
   badges?: Record<string, number>;
@@ -129,9 +127,7 @@ export function SidebarAnimatedNav({
   const itemRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
   const [indicator, setIndicator] = useState({ top: 0, visible: false });
 
-  const activeHref =
-    mainItems.find((item) => item.href === pathname)?.href ??
-    footerItems.find((item) => item.href === pathname)?.href;
+  const activeHref = mainItems.find((item) => item.href === pathname)?.href;
 
   const registerRef = useCallback(
     (href: string, node: HTMLAnchorElement | null) => {
@@ -201,10 +197,6 @@ export function SidebarAnimatedNav({
       <SlidingLiquidPill top={indicator.top} visible={indicator.visible} />
 
       <div className="flex flex-col gap-2">{mainItems.map(renderItem)}</div>
-
-      <div className="mt-4 flex flex-col gap-2">
-        {footerItems.map(renderItem)}
-      </div>
     </div>
   );
 }

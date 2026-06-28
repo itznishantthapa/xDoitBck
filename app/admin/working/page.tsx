@@ -1,7 +1,9 @@
-import type { AssignmentRow } from "@/components/admin/assignments-table";
-import { WorkingTable } from "@/components/admin/working-table";
+import {
+  WorkingTable,
+  type WorkingAssignmentRow,
+} from "@/components/admin/working-table";
 
-export const workingAssignments: AssignmentRow[] = [
+export const workingAssignments: WorkingAssignmentRow[] = [
   {
     id: "1",
     name: "Product Launch Presentation",
@@ -11,6 +13,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: false,
     deliveryDate: "2026-06-18T00:00:00Z",
     providedAt: null,
+    addedBy: "nishant",
   },
   {
     id: "2",
@@ -21,6 +24,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-08T00:00:00Z",
     providedAt: null,
+    addedBy: "aarya",
   },
   {
     id: "3",
@@ -31,6 +35,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-30T00:00:00Z",
     providedAt: null,
+    addedBy: "bhupendra",
   },
   {
     id: "4",
@@ -41,6 +46,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-27T00:00:00Z",
     providedAt: null,
+    addedBy: "nishant",
   },
   {
     id: "5",
@@ -51,6 +57,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: false,
     deliveryDate: "2026-06-25T00:00:00Z",
     providedAt: null,
+    addedBy: "aarya",
   },
   {
     id: "6",
@@ -61,6 +68,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-02T00:00:00Z",
     providedAt: "2026-05-30T09:15:00Z",
+    addedBy: "bhupendra",
   },
   {
     id: "7",
@@ -71,6 +79,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-14T00:00:00Z",
     providedAt: "2026-06-12T08:30:00Z",
+    addedBy: "nishant",
   },
   {
     id: "8",
@@ -81,6 +90,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: true,
     deliveryDate: "2026-06-11T00:00:00Z",
     providedAt: "2026-06-09T10:12:00Z",
+    addedBy: "aarya",
   },
   {
     id: "9",
@@ -91,6 +101,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: false,
     deliveryDate: "2026-06-22T00:00:00Z",
     providedAt: null,
+    addedBy: "bhupendra",
   },
   {
     id: "10",
@@ -101,6 +112,7 @@ export const workingAssignments: AssignmentRow[] = [
     isPaid: false,
     deliveryDate: "2026-07-04T00:00:00Z",
     providedAt: null,
+    addedBy: "nishant",
   },
 ];
 
