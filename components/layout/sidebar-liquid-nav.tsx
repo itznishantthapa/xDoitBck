@@ -112,13 +112,13 @@ function SidebarNavLink({
 
 export function SidebarAnimatedNav({
   mainItems,
-  pathname,
+  activeHref,
   icons,
   badges,
   className,
 }: {
   mainItems: readonly NavItem[];
-  pathname: string;
+  activeHref: string;
   icons: Record<string, IconSvgElement>;
   badges?: Record<string, number>;
   className?: string;
@@ -127,7 +127,8 @@ export function SidebarAnimatedNav({
   const itemRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
   const [indicator, setIndicator] = useState({ top: 0, visible: false });
 
-  const activeHref = mainItems.find((item) => item.href === pathname)?.href;
+  const resolvedActiveHref =
+    mainItems.find((item) => item.href === activeHref)?.href ?? activeHref;
 
   const registerRef = useCallback(
     (href: string, node: HTMLAnchorElement | null) => {
@@ -137,9 +138,9 @@ export function SidebarAnimatedNav({
     []
   );
 
-  const updateIndicator = useCallback((activeHref: string | undefined) => {
+  const updateIndicator = useCallback((href: string | undefined) => {
     const container = containerRef.current;
-    const activeEl = activeHref ? itemRefs.current.get(activeHref) : null;
+    const activeEl = href ? itemRefs.current.get(href) : null;
 
     if (!container || !activeEl) {
       setIndicator((prev) => ({ ...prev, visible: false }));
@@ -156,7 +157,7 @@ export function SidebarAnimatedNav({
   }, []);
 
   useLayoutEffect(() => {
-    const sync = () => updateIndicator(activeHref);
+    const sync = () => updateIndicator(resolvedActiveHref);
 
     const frame = requestAnimationFrame(sync);
     const container = containerRef.current;
@@ -170,7 +171,7 @@ export function SidebarAnimatedNav({
       observer.disconnect();
       window.removeEventListener("resize", sync);
     };
-  }, [activeHref, updateIndicator]);
+  }, [resolvedActiveHref, updateIndicator]);
 
   const renderItem = (item: NavItem) => {
     const icon = icons[item.icon];
@@ -182,7 +183,7 @@ export function SidebarAnimatedNav({
         href={item.href}
         label={item.label}
         icon={icon}
-        isActive={activeHref === item.href}
+        isActive={resolvedActiveHref === item.href}
         badgeCount={badges?.[item.id]}
         registerRef={registerRef}
       />

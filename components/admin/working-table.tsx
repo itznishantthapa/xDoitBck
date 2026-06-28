@@ -1,8 +1,15 @@
 "use client";
 
+import { Cancel01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
-import type { AssignmentRow } from "@/components/admin/assignments-table";
+import type {
+  WorkingAssignment,
+  WorkingAssignmentStatus,
+} from "@/mock/WorkingMocked";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,13 +34,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-export type WorkingAssignmentRow = AssignmentRow & {
-  addedBy: string;
-};
+import { routes } from "@/lib/routes";
 
 type WorkingTableProps = {
-  assignments: WorkingAssignmentRow[];
+  assignments: WorkingAssignment[];
   pageSize?: number;
 };
 
@@ -60,11 +64,7 @@ const statusStyles = {
   },
 } as const;
 
-function AssignmentStatusBadge({
-  status,
-}: {
-  status: AssignmentRow["status"];
-}) {
+function AssignmentStatusBadge({ status }: { status: WorkingAssignmentStatus }) {
   const config = statusStyles[status];
 
   return (
@@ -95,21 +95,17 @@ function PaidBadge({ value }: { value: boolean }) {
 }
 
 function formatAssignmentDateRange(
-  providedAt: string | null,
+  providedDate: string,
   deliveryDate: string
 ) {
-  const delivery = new Date(deliveryDate);
+  const delivery = new Date(`${deliveryDate}T00:00:00`);
   const deliveryLabel = delivery.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 
-  if (!providedAt) {
-    return deliveryLabel;
-  }
-
-  const provided = new Date(providedAt);
+  const provided = new Date(`${providedDate}T00:00:00`);
   const startLabel =
     provided.getFullYear() === delivery.getFullYear()
       ? provided.toLocaleDateString("en-US", {
@@ -126,6 +122,7 @@ function formatAssignmentDateRange(
 }
 
 export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(assignments.length / pageSize));
@@ -144,8 +141,8 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
   const rangeStart = assignments.length === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, assignments.length);
 
-  const handleRowClick = (name: string) => {
-    console.log(name);
+  const handleRowClick = (id: string) => {
+    router.push(routes.admin.assignmentDetails(id, "working"));
   };
 
   const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
@@ -171,7 +168,8 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
               <TableHead>Status</TableHead>
               <TableHead>Is paid</TableHead>
               <TableHead>Added by</TableHead>
-              <TableHead className="pr-4">Date</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="pr-4 text-right">Remove</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -179,7 +177,7 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
               <TableRow
                 key={assignment.id}
                 className="cursor-pointer"
-                onClick={() => handleRowClick(assignment.name)}
+                onClick={() => handleRowClick(assignment.id)}
               >
                 <TableCell className="pl-4 font-medium text-foreground">
                   {assignment.name}
@@ -199,11 +197,32 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                 <TableCell className="text-muted-foreground">
                   {assignment.addedBy}
                 </TableCell>
-                <TableCell className="pr-4 text-muted-foreground">
+                <TableCell className="text-muted-foreground">
                   {formatAssignmentDateRange(
-                    assignment.providedAt,
+                    assignment.providedDate,
                     assignment.deliveryDate
                   )}
+                </TableCell>
+                <TableCell className="pr-4">
+                  <div className="flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={`Remove ${assignment.name}`}
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        console.log(`${assignment.name} removed`);
+                      }}
+                    >
+                      <HugeiconsIcon
+                        icon={Cancel01Icon}
+                        size={16}
+                        strokeWidth={1.75}
+                      />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

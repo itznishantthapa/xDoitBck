@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 import { AdminShell } from "@/components/layout/admin-shell";
 
@@ -12,5 +13,9 @@ export default function AdminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <Suspense>
+      <AdminShell>{children}</AdminShell>
+    </Suspense>
+  );
 }

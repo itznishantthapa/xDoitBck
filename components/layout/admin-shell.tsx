@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   CalendarDaysIcon,
   Folder01Icon,
@@ -16,8 +16,8 @@ import type { IconSvgElement } from "@hugeicons/react";
 
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
 import { AdminPageTitle } from "@/components/layout/admin-page-title";
-import { assignments } from "@/app/admin/assignments/page";
-import { workingAssignments } from "@/app/admin/working/page";
+import { assignments } from "@/mock/AssignmentMocked";
+import { workingAssignments } from "@/mock/WorkingMocked";
 import {
   Tooltip,
   TooltipContent,
@@ -31,7 +31,7 @@ import {
   TEXT_DARK,
   WHITE,
 } from "@/lib/colors";
-import { routes } from "@/lib/routes";
+import { routes, getActiveAdminNavHref, isAssignmentDetailsPath } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -90,6 +90,14 @@ const navBadges = {
   assignments: assignments.filter((item) => item.status === "pending").length,
   working: workingAssignments.length,
 } as const;
+
+function getPageTitle(pathname: string) {
+  if (isAssignmentDetailsPath(pathname)) {
+    return "Assignment Details";
+  }
+
+  return pageTitles[pathname] ?? "Dashboard";
+}
 
 function AppIcon({
   icon,
@@ -152,9 +160,14 @@ function NavIconButton({
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
-  const title = pageTitles[pathname] ?? "Dashboard";
+  const title = getPageTitle(pathname);
+  const activeNavHref = getActiveAdminNavHref(
+    pathname,
+    searchParams.get("from")
+  );
   const isDashboard = pathname === routes.admin.dashboard;
 
   const handleSignOut = () => {
@@ -172,8 +185,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <nav
             aria-label="Admin navigation"
             className={cn(
-              "flex h-[calc(100svh-2rem)] w-17 flex-col overflow-visible py-4",
-              adminTokens.sidebarRailRadius
+              "flex h-[calc(100svh-2rem)] w-23 flex-col overflow-visible py-4 rounded-l-3xl",
             )}
             style={{ backgroundColor: BG_SIDEBAR }}
           >
@@ -196,7 +208,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
               <SidebarAnimatedNav
                 mainItems={navigation}
-                pathname={pathname}
+                activeHref={activeNavHref}
                 icons={navIcons}
                 badges={navBadges}
               />

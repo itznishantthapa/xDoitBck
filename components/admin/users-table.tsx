@@ -33,20 +33,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import type { User } from "@/mock/UsersMocked";
 import { cn } from "@/lib/utils";
 
-export type UserRow = {
-  id: string;
-  username: string;
-  role: "Admin" | "Mentor" | "Student";
-  country: string;
-  isActive: boolean;
-  isSuspended: boolean;
-  createdAt: string;
-};
-
 type UsersTableProps = {
-  users: UserRow[];
+  users: User[];
   pageSize?: number;
 };
 
@@ -78,7 +69,7 @@ function StatusBadge({
 }
 
 function formatCreatedAt(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",

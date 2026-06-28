@@ -8,6 +8,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import type { Assignment, AssignmentStatus } from "@/mock/AssignmentMocked";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,27 +38,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-export type AssignmentStatus =
-  | "pending"
-  | "review"
-  | "completed"
-  | "doing"
-  | "rejected";
-
-export type AssignmentRow = {
-  id: string;
-  name: string;
-  user: string;
-  assignmentType: "Essay" | "Report" | "Presentation" | "Project" | "Case Study";
-  status: AssignmentStatus;
-  isPaid: boolean;
-  deliveryDate: string;
-  providedAt: string | null;
-};
+import { routes } from "@/lib/routes";
 
 type AssignmentsTableProps = {
-  assignments: AssignmentRow[];
+  assignments: Assignment[];
   pageSize?: number;
 };
 
@@ -126,7 +112,7 @@ function PaidBadge({ value }: { value: boolean }) {
 function formatDate(value: string | null) {
   if (!value) return "—";
 
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -137,6 +123,7 @@ export function AssignmentsTable({
   assignments,
   pageSize = 8,
 }: AssignmentsTableProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AssignmentStatus>("pending");
@@ -186,8 +173,8 @@ export function AssignmentsTable({
     setSearch(value);
   };
 
-  const handleRowClick = (name: string) => {
-    console.log(name);
+  const handleRowClick = (id: string) => {
+    router.push(routes.admin.assignmentDetails(id, "assignments"));
   };
 
   const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
@@ -270,7 +257,7 @@ export function AssignmentsTable({
               <TableRow
                 key={assignment.id}
                 className="cursor-pointer"
-                onClick={() => handleRowClick(assignment.name)}
+                onClick={() => handleRowClick(assignment.id)}
               >
                 <TableCell className="pl-4 font-medium text-foreground">
                   {assignment.name}
@@ -291,7 +278,7 @@ export function AssignmentsTable({
                   {formatDate(assignment.deliveryDate)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {formatDate(assignment.providedAt)}
+                  {formatDate(assignment.providedDate)}
                 </TableCell>
                 <TableCell className="pr-4">
                   <div className="flex items-center justify-end gap-1">

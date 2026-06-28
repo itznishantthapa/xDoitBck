@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
+import type { AssignmentCompletionSeriesPoint } from "@/mock/DashboardMocked";
 import {
   Card,
   CardContent,
@@ -18,91 +18,42 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const chartConfig = {
-  users: {
-    label: "Users",
+  assignments: {
+    label: "Assignments",
   },
-  android: {
-    label: "Android",
-    color: "#06badb",
+  completed: {
+    label: "Completed",
+    color: "#7ae3aa",
   },
-  ios: {
-    label: "iOS",
-    color: "#ff610f",
+  rejected: {
+    label: "Rejected",
+    color: "#f03063",
   },
 } satisfies ChartConfig;
 
-type PlatformUsersAreaChartProps = {
+type AssignmentCompletionAreaChartProps = {
   data: {
     title: string;
     description: string;
-    referenceDate: string;
-    data: {
-      date: string;
-      android: number;
-      ios: number;
-    }[];
+    series: AssignmentCompletionSeriesPoint[];
   };
   className?: string;
 };
 
-export function PlatformUsersAreaChart({
+export function AssignmentCompletionAreaChart({
   data,
   className,
-}: PlatformUsersAreaChartProps) {
-  const [timeRange, setTimeRange] = React.useState("90d");
-
-  const filteredData = React.useMemo(() => {
-    const referenceDate = new Date(data.referenceDate);
-    let daysToSubtract = 90;
-
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-
-    return data.data.filter((item) => new Date(item.date) >= startDate);
-  }, [data.data, data.referenceDate, timeRange]);
-
+}: AssignmentCompletionAreaChartProps) {
   return (
     <Card className={cn("flex min-h-0 flex-col pt-0", className)}>
-      <CardHeader className="flex shrink-0 items-center gap-2 space-y-0 border-b py-4 sm:flex-row">
-        <div className="grid flex-1 gap-1">
+      <CardHeader className="shrink-0 space-y-0 border-b py-4">
+        <div className="grid gap-1">
           <CardTitle className="text-base">{data.title}</CardTitle>
           <CardDescription>{data.description}</CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
-          <SelectTrigger
-            className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
-            aria-label="Select time range"
-          >
-            <SelectValue placeholder="Last 3 months" />
-          </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="90d" className="rounded-lg">
-              Last 3 months
-            </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
-              Last 30 days
-            </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
-              Last 7 days
-            </SelectItem>
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent className="flex min-h-0 flex-1 flex-col px-2 pt-4 pb-4 sm:px-6 sm:pt-6">
         <ChartContainer
@@ -110,31 +61,31 @@ export function PlatformUsersAreaChart({
           className="aspect-auto min-h-[160px] w-full flex-1"
         >
           <AreaChart
-            data={filteredData}
+            data={data.series}
             margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
           >
             <defs>
-              <linearGradient id="fillAndroid" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-android)"
+                  stopColor="var(--color-completed)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-android)"
+                  stopColor="var(--color-completed)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillIos" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillRejected" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-ios)"
+                  stopColor="var(--color-rejected)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-ios)"
+                  stopColor="var(--color-rejected)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -147,7 +98,7 @@ export function PlatformUsersAreaChart({
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) => {
-                const date = new Date(value);
+                const date = new Date(`${value}T00:00:00`);
                 return date.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -159,7 +110,7 @@ export function PlatformUsersAreaChart({
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) =>
-                    new Date(value).toLocaleDateString("en-US", {
+                    new Date(`${value}T00:00:00`).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                     })
@@ -169,17 +120,17 @@ export function PlatformUsersAreaChart({
               }
             />
             <Area
-              dataKey="ios"
+              dataKey="completed"
               type="natural"
-              fill="url(#fillIos)"
-              stroke="var(--color-ios)"
+              fill="url(#fillCompleted)"
+              stroke="var(--color-completed)"
               stackId="a"
             />
             <Area
-              dataKey="android"
+              dataKey="rejected"
               type="natural"
-              fill="url(#fillAndroid)"
-              stroke="var(--color-android)"
+              fill="url(#fillRejected)"
+              stroke="var(--color-rejected)"
               stackId="a"
             />
             <ChartLegend content={<ChartLegendContent />} />

@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import type { CalendarDateMeta } from "@/mock/CalendarMocked";
 import { cn } from "@/lib/utils";
 import { BORDER, TEXT_DARK, WHITE } from "@/lib/colors";
 
@@ -36,12 +37,6 @@ const statusColors = {
 } as const;
 
 const bookedBackground = "#f0306314";
-
-type CalendarDateMeta = {
-  date: string;
-  isDelivery: boolean;
-  isDelivered: boolean;
-};
 
 type AdminCalendarProps = {
   initialBookedDates: string[];
