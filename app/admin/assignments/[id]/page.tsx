@@ -4,7 +4,9 @@ import { ArrowLeft01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 
+import { AssignmentProgressTracker } from "@/components/admin/assignment-progress-tracker";
 import { Button } from "@/components/ui/button";
+import { getAssignmentProgress } from "@/mock/AssignmentProgressMocked";
 import {
   getAssignmentDetailsOrigin,
   getAssignmentListHref,
@@ -16,22 +18,22 @@ export default function AssignmentDetailsPage() {
   const params = useParams<{ id: string }>();
   const assignmentId = params.id;
   const from = getAssignmentDetailsOrigin(searchParams.get("from"));
+  const response = getAssignmentProgress(assignmentId);
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6 pt-2">
+    <div className="flex h-full min-h-0 flex-col gap-3 pt-1">
       <Button
         type="button"
         variant="ghost"
-        className="w-fit cursor-pointer gap-1.5 px-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+        size="sm"
+        className="w-fit shrink-0 gap-1.5 px-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
         onClick={() => router.push(getAssignmentListHref(from))}
       >
         <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={1.75} />
         Back
       </Button>
 
-      <p className="text-base text-foreground">
-        this is assignment details page: assignment id {assignmentId}
-      </p>
+      <AssignmentProgressTracker progress={response.progress} />
     </div>
   );
 }

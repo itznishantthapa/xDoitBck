@@ -10,17 +10,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { TEXT_DARK, WHITE } from "@/lib/colors";
+import { BG_SIDEBAR, TEXT_DARK, WHITE } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 const ITEM_H = 56;
 
-/** Single sliding pill — inverted-radius scoops live here, not on each link */
+/** Single sliding pill — inset from the left so it does not touch the sidebar edge */
 const liquidPillClasses =
-  "absolute right-0 z-0 w-full bg-white rounded-l-[24px] pointer-events-none " +
+  "absolute left-3 right-0 z-0 bg-white rounded-l-[36px] pointer-events-none " +
   "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] " +
-  "before:content-[''] before:absolute before:w-5 before:h-5 before:bg-[#1a1a1a] before:right-0 before:-top-5 before:rounded-br-[20px] before:shadow-[4px_4px_0_4px_#ffffff] " +
-  "after:content-[''] after:absolute after:w-5 after:h-5 after:bg-[#1a1a1a] after:right-0 after:-bottom-5 after:rounded-tr-[20px] after:shadow-[4px_-4px_0_4px_#ffffff]";
+  "before:content-[''] before:absolute before:w-6 before:h-6 before:bg-[var(--liquid-scoop-bg)] before:right-0 before:-top-6 before:rounded-br-[10px] before:shadow-[5px_5px_0_5px_var(--liquid-scoop-cutout)] " +
+  "after:content-[''] after:absolute after:w-6 after:h-6 after:bg-[var(--liquid-scoop-bg)] after:right-0 after:-bottom-6 after:rounded-tr-[10px] after:shadow-[5px_-5px_0_5px_var(--liquid-scoop-cutout)]";
 
 type NavItem = {
   id: string;
@@ -44,6 +44,8 @@ function SlidingLiquidPill({
         height: ITEM_H,
         transform: `translateY(${top}px)`,
         opacity: visible ? 1 : 0,
+        ["--liquid-scoop-bg" as string]: BG_SIDEBAR,
+        ["--liquid-scoop-cutout" as string]: WHITE,
       }}
     />
   );
