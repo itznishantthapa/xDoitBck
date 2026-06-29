@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
+import { playAddWorkingSound } from "@/lib/play-sound";
 
 type AssignmentsTableProps = {
   assignments: Assignment[];
@@ -252,6 +253,7 @@ export function AssignmentsTable({
                       className="text-muted-foreground hover:text-foreground"
                       onClick={(event) => {
                         event.stopPropagation();
+                        playAddWorkingSound();
                         console.log("added to working");
                       }}
                     >

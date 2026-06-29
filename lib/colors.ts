@@ -9,5 +9,5 @@ export const BG_SIDEBAR = "#000000";
 
 export const adminTokens = {
   sidebarRailRadius: "rounded-[1.5rem]",
-  sidebarLogoRadius: "rounded-[0.875rem]",
+  sidebarLogoRadius: "rounded-[2.5rem]",
 } as const;

@@ -33,7 +33,7 @@ import {
   TEXT_DARK,
   WHITE,
 } from "@/lib/colors";
-import { routes, getActiveAdminNavHref, isAssignmentDetailsPath } from "@/lib/routes";
+import { routes, getActiveAdminNavHref, isAssignmentDetailsPath, isUserDetailsPath } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +96,10 @@ const navBadges = {
 function getPageTitle(pathname: string) {
   if (isAssignmentDetailsPath(pathname)) {
     return "Assignment Details";
+  }
+
+  if (isUserDetailsPath(pathname)) {
+    return "User Details";
   }
 
   return pageTitles[pathname] ?? "Dashboard";
@@ -201,8 +205,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <Image
                 src="/logo.png"
                 alt={brand}
-                width={44}
-                height={44}
+                width={50}
+                height={50}
                 className={cn("size-11 object-cover", adminTokens.sidebarLogoRadius)}
                 priority
               />

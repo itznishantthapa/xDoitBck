@@ -8,8 +8,8 @@ import { AssignmentProgressTracker } from "@/components/admin/assignment-progres
 import { Button } from "@/components/ui/button";
 import { getAssignmentProgress } from "@/mock/AssignmentProgressMocked";
 import {
+  getAssignmentDetailsBackHref,
   getAssignmentDetailsOrigin,
-  getAssignmentListHref,
 } from "@/lib/routes";
 
 export default function AssignmentDetailsPage() {
@@ -18,6 +18,7 @@ export default function AssignmentDetailsPage() {
   const params = useParams<{ id: string }>();
   const assignmentId = params.id;
   const from = getAssignmentDetailsOrigin(searchParams.get("from"));
+  const userId = searchParams.get("userId");
   const response = getAssignmentProgress(assignmentId);
 
   return (
@@ -27,7 +28,9 @@ export default function AssignmentDetailsPage() {
         variant="ghost"
         size="sm"
         className="w-fit shrink-0 gap-1.5 px-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-        onClick={() => router.push(getAssignmentListHref(from))}
+        onClick={() =>
+          router.push(getAssignmentDetailsBackHref(from, userId))
+        }
       >
         <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={1.75} />
         Back

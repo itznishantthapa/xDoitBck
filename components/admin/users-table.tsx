@@ -7,6 +7,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
@@ -35,6 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { User } from "@/mock/UsersMocked";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 type UsersTableProps = {
@@ -78,6 +80,7 @@ function formatCreatedAt(value: string) {
 }
 
 export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
@@ -120,8 +123,8 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
     setSearch(value);
   };
 
-  const handleRowClick = (username: string) => {
-    console.log(username);
+  const handleRowClick = (userId: string) => {
+    router.push(routes.admin.userDetails(userId));
   };
 
   const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
@@ -177,7 +180,7 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
               <TableRow
                 key={user.id}
                 className="cursor-pointer"
-                onClick={() => handleRowClick(user.username)}
+                onClick={() => handleRowClick(user.id)}
               >
                 <TableCell className="pl-4 font-medium text-foreground">
                   {user.username}

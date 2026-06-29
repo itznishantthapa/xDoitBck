@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
+import { playRemoveSound } from "@/lib/play-sound";
 
 type WorkingTableProps = {
   assignments: WorkingAssignment[];
@@ -213,6 +214,7 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                       className="text-muted-foreground hover:text-destructive"
                       onClick={(event) => {
                         event.stopPropagation();
+                        playRemoveSound();
                         console.log(`${assignment.name} removed`);
                       }}
                     >

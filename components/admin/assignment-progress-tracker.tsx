@@ -19,6 +19,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ComponentProps, type ReactNode, type RefObject } from "react";
 
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
@@ -36,6 +37,7 @@ import type {
 } from "@/mock/AssignmentProgressMocked";
 import { BORDER, GHOSTWHITE, TEXT_DARK, TEXT_MUTED, WHITE } from "@/lib/colors";
 import { downloadFilesAsZip, downloadSingleFile, toCompletedFileName, toZipFileName } from "@/lib/download-files";
+import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
 type StepKey = keyof AssignmentProgressSteps;
@@ -185,6 +187,7 @@ type AssignmentProgressTrackerProps = {
 export function AssignmentProgressTracker({
   progress,
 }: AssignmentProgressTrackerProps) {
+  const router = useRouter();
   const { steps } = progress;
 
   return (
@@ -205,20 +208,68 @@ export function AssignmentProgressTracker({
                   style={{ backgroundColor: SUCCESS }}
                 />
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <MetaChip icon={UserIcon} label={progress.user.username} />
-                <MetaChip icon={NoteIcon} label={progress.assignment_type} />
-                <MetaChip
-                  icon={Calendar03Icon}
-                  label={formatDeliveryDate(progress.delivery_date)}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    router.push(
+                      routes.admin.userDetails(String(progress.user.id))
+                    )
+                  }
+                  className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-semibold tracking-tight transition-colors hover:opacity-80"
+                  style={{ color: TEXT_DARK }}
+                >
+                  <HugeiconsIcon
+                    icon={UserIcon}
+                    size={14}
+                    strokeWidth={1.75}
+                    color={TEXT_MUTED}
+                  />
+                  {progress.user.username}
+                </button>
+
+                <span
+                  className="size-1 shrink-0 rounded-full bg-muted-foreground/25"
+                  aria-hidden
                 />
+
+                <span
+                  className="inline-flex items-center gap-1.5 text-sm font-medium"
+                  style={{ color: TEXT_MUTED }}
+                >
+                  <HugeiconsIcon
+                    icon={NoteIcon}
+                    size={14}
+                    strokeWidth={1.75}
+                    color={TEXT_MUTED}
+                  />
+                  {progress.assignment_type}
+                </span>
+
+                <span
+                  className="size-1 shrink-0 rounded-full bg-muted-foreground/25"
+                  aria-hidden
+                />
+
+                <span
+                  className="inline-flex items-center gap-1.5 text-sm font-medium"
+                  style={{ color: TEXT_MUTED }}
+                >
+                  <HugeiconsIcon
+                    icon={Calendar03Icon}
+                    size={14}
+                    strokeWidth={1.75}
+                    color={TEXT_MUTED}
+                  />
+                  {formatDeliveryDate(progress.delivery_date)}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="min-h-0 flex-1 overflow-x-auto bg-[#fafbfc] px-5 py-6">
+      <CardContent className="min-h-0 flex-1 overflow-x-auto bg-[#ffffff] px-5 py-6">
         <div className="min-w-[920px]">
           <div className="grid grid-cols-4 items-stretch gap-4">
             {stepOrder.map((key, index) => {
@@ -267,21 +318,6 @@ export function AssignmentProgressTracker({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function MetaChip({
-  icon,
-  label,
-}: {
-  icon: IconSvgElement;
-  label: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-muted-foreground ring-1 ring-border/80">
-      <HugeiconsIcon icon={icon} size={13} strokeWidth={1.75} />
-      {label}
-    </span>
   );
 }
 
@@ -608,10 +644,10 @@ function ProgressStepCard({
   return (
     <div
       className={cn(
-        "flex h-full min-h-[292px] min-w-0 flex-col overflow-hidden rounded-xl bg-white ring-1 transition-all duration-200",
+        "flex h-full min-h-[292px] min-w-0 flex-col overflow-hidden rounded-xl bg-white transition-all duration-200",
         isDisabled
-          ? "pointer-events-none select-none ring-border/90"
-          : cn("ring-black/6 shadow-sm", !reached && "opacity-65")
+          ? "pointer-events-none select-none ring-border/90 shadow-[0_0_4px_rgba(0,0,0,0.10)]"
+          : cn("shadow-[0_0_4px_rgba(0,0,0,0.10)]", !reached && "opacity-65")
       )}
     >
       <div
@@ -854,7 +890,7 @@ function ProvidedStepActions({
         accent={accent}
         className={showReviewActions ? "min-w-0 flex-1" : "w-full"}
         disabled={!hasFiles || isZipping}
-        title={isZipping ? "Creating Zip..." : "Download"}
+        title={isZipping ? "Zipping..." : "Download"}
         onClick={handleZipDownload}
       >
         <HugeiconsIcon
@@ -864,7 +900,7 @@ function ProvidedStepActions({
           className="shrink-0"
         />
         <span className="truncate">
-          {isZipping ? "Creating Zip..." : "Download"}
+          {isZipping ? "Zipping..." : "Download"}
         </span>
       </StepPrimaryButton>
 
