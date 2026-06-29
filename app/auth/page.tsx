@@ -1,40 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import SubmitButton from "@/components/custom/SubmitButton";
+import { Button } from "@/components/ui/button";
 import {
-  BG_BUTTON,
-  BOOKED_TEXT,
-  BORDER,
-  GHOSTWHITE,
-  TEXT_DARK,
-  TEXT_MUTED,
-  WHITE,
-} from "@/lib/colors";
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { BG_SIDEBAR, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import { useAuthStore } from "@/lib/store";
 
+const SUCCESS = "#08d203";
+const REJECT = "#f03063";
+
+
 const inputClassName = cn(
-  "h-[52px] w-full rounded-2xl border-[1.5px] px-4 text-[15px] font-medium outline-none transition-colors placeholder:text-[var(--text-muted)]"
+  "h-11 rounded-xl border-0 bg-background text-sm font-medium shadow-none ring-1 ring-foreground/10",
+  "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
 );
 
-function getInputStyle(hasError: boolean): React.CSSProperties {
-  return {
-    color: TEXT_DARK,
-    backgroundColor: WHITE,
-    borderColor: hasError ? BOOKED_TEXT : BORDER,
-  };
-}
-
 export default function AuthPage() {
-  const { login, isLoading } = useAuthStore();
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -56,113 +55,133 @@ export default function AuthPage() {
     }
 
     try {
+      setIsLoading(true);
       await login({ username: trimmedUsername, password: trimmedPassword });
       router.replace(routes.admin.dashboard);
+
+      
+      // Promise for 3 seconds to simulate loading
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      setIsLoading(false);
     } catch (err) {
       console.error("Login attempt failed:", err);
       setSubmitError("Could not sign in. Please try again.");
+      setIsLoading(false);
     }
   };
 
   return (
-    <div
-      className="rounded-3xl border-0 border-none p-6 shadow-none sm:p-8"
-      style={{ backgroundColor: GHOSTWHITE }}
-    >
-      <div className="mb-8 text-center">
-        <h1
-          className="text-2xl font-bold tracking-tight"
+    <Card className="gap-0 border-0 py-0 shadow-2xl ring-1 ring-foreground/10">
+      <CardHeader className="items-center space-y-0 px-6 pb-2 pt-8 text-center">
+        <CardTitle
+          className="flex items-center justify-center gap-2 text-2xl font-bold tracking-tight"
           style={{ color: TEXT_DARK }}
         >
-          Doit App
-        </h1>
-        <p
-          className="mt-2 text-[13px] leading-[19px]"
+          <span>Doit.</span>
+          <Image
+            src="/leaficon.png"
+            alt=""
+            width={32}
+            height={32}
+            priority
+            aria-hidden
+            className="size-7 shrink-0 object-contain"
+          />
+        </CardTitle>
+
+        <div
+          className="mx-auto mt-2 h-1 w-44 rounded-full"
+          style={{ backgroundColor: SUCCESS }}
+        />
+
+        <CardDescription
+          className="mt-4 text-sm font-medium leading-relaxed"
           style={{ color: TEXT_MUTED }}
         >
-          Authenticate yourself to access the admin panel.
-        </p>
-      </div>
+          Sign in to access the admin panel
+        </CardDescription>
+      </CardHeader>
 
-      <form
-        onSubmit={handleLoginSubmit}
-        className="space-y-5"
-        style={{ ["--text-muted" as string]: TEXT_MUTED }}
-        noValidate
-      >
-        <div>
-          <label
-            htmlFor="username"
-            className="mb-1.5 block text-base font-bold tracking-tight"
-            style={{ color: TEXT_DARK }}
-          >
-            Username
-          </label>
-          <input
-            id="username"
-            type="text"
-            autoComplete="username"
-            placeholder="Enter your username"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              if (e.target.value.trim()) setUsernameError(false);
-            }}
-            className={inputClassName}
-            style={getInputStyle(usernameError)}
-          />
-          {usernameError ? (
-            <p className="mt-2 text-xs" style={{ color: BOOKED_TEXT }}>
-              Required
+      <CardContent className="px-6 pb-8 pt-2">
+        <form onSubmit={handleLoginSubmit} className="space-y-5" noValidate>
+          <div className="space-y-2">
+            <label
+              htmlFor="username"
+              className="block text-sm font-semibold tracking-tight"
+              style={{ color: TEXT_DARK }}
+            >
+              Username
+            </label>
+            <Input
+              id="username"
+              type="text"
+              autoComplete="username"
+              placeholder="Enter your username"
+              value={username}
+              aria-invalid={usernameError}
+              onChange={(event) => {
+                setUsername(event.target.value);
+                if (event.target.value.trim()) setUsernameError(false);
+              }}
+              className={cn(
+                inputClassName,
+                usernameError && "ring-[#f03063] focus-visible:ring-[#f03063]"
+              )}
+            />
+            {usernameError ? (
+              <p className="text-xs font-medium" style={{ color: REJECT }}>
+                Username is required
+              </p>
+            ) : null}
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold tracking-tight"
+              style={{ color: TEXT_DARK }}
+            >
+              Password
+            </label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Enter your password"
+              value={password}
+              aria-invalid={passwordError}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                if (event.target.value.trim()) setPasswordError(false);
+              }}
+              className={cn(
+                inputClassName,
+                passwordError && "ring-[#f03063] focus-visible:ring-[#f03063]"
+              )}
+            />
+            {passwordError ? (
+              <p className="text-xs font-medium" style={{ color: REJECT }}>
+                Password is required
+              </p>
+            ) : null}
+          </div>
+
+          {submitError ? (
+            <p className="text-xs font-medium" style={{ color: REJECT }}>
+              {submitError}
             </p>
           ) : null}
-        </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-1.5 block text-base font-bold tracking-tight"
-            style={{ color: TEXT_DARK }}
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="h-11 w-full rounded-lg text-sm font-semibold tracking-tight text-white shadow-none hover:opacity-90 disabled:opacity-70"
+            style={{ backgroundColor: BG_SIDEBAR }}
           >
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              if (e.target.value.trim()) setPasswordError(false);
-            }}
-            className={inputClassName}
-            style={getInputStyle(passwordError)}
-          />
-          {passwordError ? (
-            <p className="mt-2 text-xs" style={{ color: BOOKED_TEXT }}>
-              Required
-            </p>
-          ) : null}
-        </div>
-
-        {submitError ? (
-          <p className="text-xs" style={{ color: BOOKED_TEXT }}>
-            {submitError}
-          </p>
-        ) : null}
-
-        <SubmitButton
-          type="submit"
-          className="w-full border-0 hover:opacity-90"
-          style={{
-            backgroundColor: BG_BUTTON,
-            color: TEXT_DARK,
-          }}
-          buttonTitle="Login"
-          loader={isLoading}
-        />
-      </form>
-    </div>
+            {isLoading ? "Signing in..." : "Sign in"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

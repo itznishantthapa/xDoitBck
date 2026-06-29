@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import {
   CalendarDaysIcon,
   Folder01Icon,
@@ -16,6 +17,7 @@ import type { IconSvgElement } from "@hugeicons/react";
 
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
 import { AdminPageTitle } from "@/components/layout/admin-page-title";
+import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import { assignments } from "@/mock/AssignmentMocked";
 import { workingAssignments } from "@/mock/WorkingMocked";
 import {
@@ -163,6 +165,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const logout = useAuthStore((state) => state.logout);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const title = getPageTitle(pathname);
   const activeNavHref = getActiveAdminNavHref(
     pathname,
@@ -218,13 +221,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <NavIconButton
                 label="Log out"
                 icon={Logout01Icon}
-                onClick={handleSignOut}
-                hoverClassName="hover:bg-red-500/15"
+                onClick={() => setIsLogoutModalOpen(true)}
+                hoverClassName=""
                 iconColor={BOOKED_TEXT}
               />
             </div>
           </nav>
         </aside>
+
+        <ConfirmationModal
+          open={isLogoutModalOpen}
+          variant="neutral"
+          title="Log out"
+          subtitle="Are you sure you want to log out of your account?"
+          cancelLabel="Cancel"
+          confirmLabel="Log out"
+          onConfirm={() => {
+            setIsLogoutModalOpen(false);
+            handleSignOut();
+          }}
+          onClose={() => setIsLogoutModalOpen(false)}
+          ariaLabel="Confirm log out"
+        />
 
         <main className="flex h-svh min-w-0 flex-1 flex-col overflow-hidden">
           {!isDashboard ? (

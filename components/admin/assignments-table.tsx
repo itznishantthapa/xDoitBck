@@ -4,7 +4,6 @@ import {
   Delete02Icon,
   Edit02Icon,
   FolderAddIcon,
-  Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
@@ -21,7 +20,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -125,24 +123,13 @@ export function AssignmentsTable({
 }: AssignmentsTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<AssignmentStatus>("pending");
 
   const filteredAssignments = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return assignments.filter((assignment) => {
-      if (assignment.status !== statusFilter) return false;
-      if (!query) return true;
-
-      return (
-        assignment.name.toLowerCase().includes(query) ||
-        assignment.user.toLowerCase().includes(query) ||
-        assignment.assignmentType.toLowerCase().includes(query) ||
-        assignment.status.toLowerCase().includes(query)
-      );
-    });
-  }, [assignments, search, statusFilter]);
+    return assignments.filter(
+      (assignment) => assignment.status === statusFilter
+    );
+  }, [assignments, statusFilter]);
 
   const totalPages = Math.max(
     1,
@@ -156,7 +143,7 @@ export function AssignmentsTable({
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter]);
+  }, [statusFilter]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -168,11 +155,6 @@ export function AssignmentsTable({
     filteredAssignments.length === 0 ? 0 : (page - 1) * pageSize + 1;
   const rangeEnd = Math.min(page * pageSize, filteredAssignments.length);
 
-  const handleSearchChange = (value: string) => {
-    console.log(value);
-    setSearch(value);
-  };
-
   const handleRowClick = (id: string) => {
     router.push(routes.admin.assignmentDetails(id, "assignments"));
   };
@@ -183,33 +165,13 @@ export function AssignmentsTable({
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col pt-0">
-      <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 border-b py-4">
         <div className="grid gap-1">
           <CardTitle className="text-base">All Assignments</CardTitle>
           <CardDescription>
             Track assignment progress, payments, and delivery dates
           </CardDescription>
         </div>
-
-        <label className="relative block w-full shrink-0 sm:max-w-xs">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={18}
-            strokeWidth={1.75}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            type="text"
-            value={search}
-            placeholder="Search assignments"
-            aria-label="Search assignments"
-            onChange={(event) => handleSearchChange(event.target.value)}
-            className={cn(
-              "h-10 rounded-xl border-0 bg-background pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10",
-              "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
-            )}
-          />
-        </label>
       </CardHeader>
 
       <div className="flex shrink-0 flex-wrap gap-2 border-b px-4 py-3">

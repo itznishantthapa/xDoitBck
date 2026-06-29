@@ -16,7 +16,6 @@ interface LoginPayload {
 interface AuthState {
   user: UserProfile | null;
   accessToken: string | null;
-  isLoading: boolean;
   login: (payload: LoginPayload) => Promise<UserProfile>;
   logout: () => void;
 }
@@ -43,11 +42,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: readStoredUser(),
   accessToken:
     typeof window !== "undefined" ? Cookies.get("auth_token") || null : null,
-  isLoading: false,
+
 
   login: async (payload) => {
-    set({ isLoading: true });
-
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -71,10 +68,9 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       localStorage.setItem("doit_user", JSON.stringify(user));
 
-      set({ user, accessToken, isLoading: false });
+      set({ user, accessToken });
       return user;
     } catch (error) {
-      set({ isLoading: false });
       throw error;
     }
   },

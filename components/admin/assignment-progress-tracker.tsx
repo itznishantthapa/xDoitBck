@@ -21,6 +21,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useEffect, useRef, useState, type ComponentProps, type ReactNode, type RefObject } from "react";
 
+import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -191,7 +192,7 @@ export function AssignmentProgressTracker({
       <CardHeader className="shrink-0 space-y-4 border-b border-border/60 px-5 py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="grid gap-3">
-            <span className="inline-flex w-fit items-center rounded-full bg-[#895ef612] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#895ef6] ring-1 ring-[#895ef622]">
+            <span className="inline-flex w-fit items-center rounded-t-md bg-[#895ef612] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#895ef6] ">
               {progress.work_type}
             </span>
             <div className="grid gap-2.5">
@@ -372,41 +373,79 @@ function StepReviewActions({
   onApprove: () => void;
   onReject: () => void;
 }) {
+  const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(
+    null
+  );
+
+  const isApprove = pendingAction === "approve";
+  const stepTitle =
+    stepLabel.charAt(0).toUpperCase() + stepLabel.slice(1);
+  const confirmationTitle = isApprove
+    ? `Complete ${stepTitle}`
+    : `Reject ${stepTitle}`;
+  const confirmationSubtitle = isApprove
+    ? `Are you sure you want to complete the ${stepLabel} step?`
+    : `Are you sure you want to reject the ${stepLabel} step?`;
+
+  const handleConfirm = () => {
+    if (pendingAction === "approve") {
+      onApprove();
+    } else if (pendingAction === "reject") {
+      onReject();
+    }
+
+    setPendingAction(null);
+  };
+
   return (
-    <div className="flex shrink-0 items-center gap-1.5">
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        aria-label={`Approve ${stepLabel}`}
-        className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
-        style={{ backgroundColor: SUCCESS }}
-        onClick={onApprove}
-      >
-        <HugeiconsIcon
-          icon={Tick02Icon}
-          size={16}
-          strokeWidth={2.25}
-          color="#ffffff"
-        />
-      </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="icon-sm"
-        aria-label={`Reject ${stepLabel}`}
-        className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
-        style={{ backgroundColor: REJECT }}
-        onClick={onReject}
-      >
-        <HugeiconsIcon
-          icon={Cancel01Icon}
-          size={16}
-          strokeWidth={2.25}
-          color="#ffffff"
-        />
-      </Button>
-    </div>
+    <>
+      <div className="flex shrink-0 items-center gap-1.5">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          aria-label={`Approve ${stepLabel}`}
+          className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
+          style={{ backgroundColor: SUCCESS }}
+          onClick={() => setPendingAction("approve")}
+        >
+          <HugeiconsIcon
+            icon={Tick02Icon}
+            size={16}
+            strokeWidth={2.25}
+            color="#ffffff"
+          />
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          aria-label={`Reject ${stepLabel}`}
+          className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
+          style={{ backgroundColor: REJECT }}
+          onClick={() => setPendingAction("reject")}
+        >
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            size={16}
+            strokeWidth={2.25}
+            color="#ffffff"
+          />
+        </Button>
+      </div>
+
+      <ConfirmationModal
+        open={pendingAction !== null}
+        variant={isApprove ? "approve" : "reject"}
+        title={confirmationTitle}
+        subtitle={confirmationSubtitle}
+        cancelLabel="Cancel"
+        confirmLabel={isApprove ? "Complete" : "Reject"}
+        onConfirm={handleConfirm}
+        onClose={() => setPendingAction(null)}
+        ariaLabel={`Confirm ${stepLabel} ${pendingAction ?? "action"}`}
+      />
+    </>
   );
 }
 
@@ -761,7 +800,7 @@ function PaymentStepFields({
             type="button"
             title={paymentFile?.name ?? "Upload payment receipt"}
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-9 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-border bg-white/90 px-3 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white hover:text-foreground mb-3"
+            className="flex h-9 w-full min-w-0 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-border bg-white/90 px-3 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white hover:text-foreground mb-3"
           >
             <HugeiconsIcon
               icon={Upload04Icon}
@@ -973,14 +1012,14 @@ function DescriptionTextModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
+        className="relative max-h-[90vh] w-full max-w-lg cursor-default overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
@@ -1106,14 +1145,14 @@ function PaymentScreenshotModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
       aria-label="Payment screenshot"
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
+        className="relative max-h-[90vh] w-full max-w-2xl cursor-default overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
@@ -1174,15 +1213,9 @@ function PaymentStepFooterActions({
     <>
       {hasPaymentScreenshot ? (
         <div className="flex w-full min-w-0 items-center gap-2">
-          <StepSecondaryButton
-            className={cn(
-              "min-w-0 text-foreground hover:text-foreground",
-              showReviewActions ? "flex-1" : "w-full"
-            )}
-            style={{
-              color: accent,
-              borderColor: `${accent}33`,
-            }}
+          <StepPrimaryButton
+            accent={accent}
+            className={showReviewActions ? "min-w-0 flex-1" : "w-full"}
             title="View Payment"
             onClick={() => setIsScreenshotOpen(true)}
           >
@@ -1193,7 +1226,7 @@ function PaymentStepFooterActions({
               className="shrink-0"
             />
             <span className="truncate">View Payment</span>
-          </StepSecondaryButton>
+          </StepPrimaryButton>
 
           {showReviewActions ? (
             <StepReviewActions

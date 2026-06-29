@@ -9,6 +9,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import {
   Card,
   CardContent,
@@ -79,6 +80,7 @@ function formatCreatedAt(value: string) {
 export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const filteredUsers = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -211,7 +213,10 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
                       size="icon-sm"
                       aria-label={`Delete ${user.username}`}
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setUserToDelete(user);
+                      }}
                     >
                       <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={1.75} />
                     </Button>
@@ -257,6 +262,27 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
           </PaginationContent>
         </Pagination>
       </CardFooter>
+
+      <ConfirmationModal
+        open={userToDelete !== null}
+        variant="reject"
+        title="Delete user"
+        subtitle={
+          userToDelete
+            ? `Are you sure you want to delete ${userToDelete.username} ?`
+            : ""
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (userToDelete) {
+            console.log("delete user", userToDelete.username);
+          }
+          setUserToDelete(null);
+        }}
+        onClose={() => setUserToDelete(null)}
+        ariaLabel="Confirm user delete"
+      />
     </Card>
   );
 }
