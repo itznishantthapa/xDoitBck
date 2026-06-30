@@ -7,8 +7,7 @@ const REFRESH_TOKEN_KEY = "doit_refresh_token";
 const USER_KEY = "doit_user";
 
 export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
-
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://doit.level.com.np";
 const cookieOptions = {
   expires: 7,
   secure: process.env.NODE_ENV === "production",
