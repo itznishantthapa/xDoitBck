@@ -25,10 +25,10 @@ export type DashboardResponse = {
   stats: {
     users: DashboardUsersStat;
     assignments: DashboardStat;
-    payments: DashboardStat;
+    revenue: DashboardStat;
     deliveries: DashboardStat;
-    mentors: DashboardStat;
-    students: DashboardStat;
+    working: DashboardStat;
+    pendingPayments: DashboardStat;
   };
   assignmentBreakdown: {
     total: number;
@@ -57,7 +57,7 @@ export const dashboardResponse: DashboardResponse = {
       total: 2840,
       growthPercentage: 3.2,
     },
-    payments: {
+    revenue: {
       total: 94250,
       growthPercentage: 0.8,
     },
@@ -65,13 +65,13 @@ export const dashboardResponse: DashboardResponse = {
       total: 1264,
       growthPercentage: 2.4,
     },
-    mentors: {
-      total: 428,
-      growthPercentage: 2.1,
+    working: {
+      total: 12,
+      growthPercentage: 0,
     },
-    students: {
-      total: 9120,
-      growthPercentage: 4.5,
+    pendingPayments: {
+      total: 2,
+      growthPercentage: 0,
     },
   },
 

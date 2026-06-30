@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (payload) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const mockApiResponse = {
         accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mockTokenString...",

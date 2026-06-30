@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  FolderAddIcon,
+  InformationCircleIcon,
+} from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AndroidIcon, AppleIcon } from "@/components/icons/platform-icons";
 import {
   Card,
@@ -9,11 +14,24 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+export type StatsCardTrendIcon = "added" | "verification";
+
 export type StatsCardTrend = {
   value: string;
   direction: "up" | "down";
   label: string;
+  icon?: StatsCardTrendIcon;
 };
+
+const trendIconMap = {
+  added: FolderAddIcon,
+  verification: InformationCircleIcon,
+} as const;
+
+const trendIconClassName = {
+  added: "text-[#4da1f7]",
+  verification: "text-emerald-600",
+} as const;
 
 export type StatsCardPlatformBreakdown = {
   iosUsers: number;
@@ -60,15 +78,27 @@ export function StatsCard({
           {value.toLocaleString()}
         </p>
 
-        <p className="mt-1.5 text-sm leading-snug">
-          <span
-            className={cn(
-              "font-medium",
-              isUp ? "text-emerald-600" : "text-orange-600"
-            )}
-          >
-            {trend.value}
-          </span>{" "}
+        <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-snug">
+          {trend.icon ? (
+            <HugeiconsIcon
+              icon={trendIconMap[trend.icon]}
+              size={14}
+              strokeWidth={2}
+              className={cn("shrink-0", trendIconClassName[trend.icon])}
+            />
+          ) : null}
+          {trend.value ? (
+            <>
+              <span
+                className={cn(
+                  "font-medium",
+                  isUp ? "text-emerald-600" : "text-orange-600"
+                )}
+              >
+                {trend.value}
+              </span>{" "}
+            </>
+          ) : null}
           <span className="text-muted-foreground">{trend.label}</span>
         </p>
       </CardContent>

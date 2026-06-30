@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 
 import type { Assignment, AssignmentStatus } from "@/mock/AssignmentMocked";
 
+import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -125,6 +126,9 @@ export function AssignmentsTable({
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<AssignmentStatus>("pending");
+  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(
+    null
+  );
 
   const filteredAssignments = useMemo(() => {
     return assignments.filter(
@@ -275,7 +279,10 @@ export function AssignmentsTable({
                       size="icon-sm"
                       aria-label={`Delete ${assignment.name}`}
                       className="text-muted-foreground hover:text-destructive"
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setAssignmentToDelete(assignment);
+                      }}
                     >
                       <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={1.75} />
                     </Button>
@@ -322,6 +329,27 @@ export function AssignmentsTable({
           </PaginationContent>
         </Pagination>
       </CardFooter>
+
+      <ConfirmationModal
+        open={assignmentToDelete !== null}
+        variant="reject"
+        title="Delete assignment"
+        subtitle={
+          assignmentToDelete
+            ? `Are you sure you want to delete ${assignmentToDelete.name}?`
+            : ""
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (assignmentToDelete) {
+            console.log("delete assignment", assignmentToDelete.name);
+          }
+          setAssignmentToDelete(null);
+        }}
+        onClose={() => setAssignmentToDelete(null)}
+        ariaLabel="Confirm assignment delete"
+      />
     </Card>
   );
 }

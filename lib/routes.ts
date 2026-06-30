@@ -1,4 +1,14 @@
-export type AssignmentDetailsFrom = "assignments" | "working" | "users";
+export type AssignmentDetailsFrom =
+  | "assignments"
+  | "working"
+  | "users"
+  | "calendar-delivery"
+  | "calendar-delivered";
+
+type AssignmentDetailsOptions = {
+  userId?: string;
+  date?: string;
+};
 
 export const routes = {
   auth: "/auth",
@@ -11,20 +21,34 @@ export const routes = {
     assignmentDetails: (
       id: string,
       from: AssignmentDetailsFrom = "assignments",
-      userId?: string
+      userIdOrOptions?: string | AssignmentDetailsOptions
     ) => {
+      const options: AssignmentDetailsOptions =
+        typeof userIdOrOptions === "string"
+          ? { userId: userIdOrOptions }
+          : (userIdOrOptions ?? {});
+
       if (from === "users") {
         const params = new URLSearchParams({ from: "users" });
-        if (userId) {
-          params.set("userId", userId);
+        if (options.userId) {
+          params.set("userId", options.userId);
         }
         return `/admin/assignments/${id}?${params.toString()}`;
       }
 
-      return `/admin/assignments/${id}?from=${from}`;
+      const params = new URLSearchParams({ from });
+      if (options.date) {
+        params.set("date", options.date);
+      }
+
+      return `/admin/assignments/${id}?${params.toString()}`;
     },
     working: "/admin/working",
     calendar: "/admin/calendar",
+    calendarDelivery: (date: string) =>
+      `/admin/calendar/delivery?date=${encodeURIComponent(date)}`,
+    calendarDelivered: (date: string) =>
+      `/admin/calendar/delivered?date=${encodeURIComponent(date)}`,
   },
 } as const;
 
@@ -42,26 +66,47 @@ export function isUserDetailsPath(pathname: string) {
   );
 }
 
+export function isCalendarSubPath(pathname: string) {
+  return (
+    pathname !== routes.admin.calendar &&
+    pathname.startsWith(`${routes.admin.calendar}/`)
+  );
+}
+
 export function getAssignmentDetailsOrigin(
   from: string | null | undefined
 ): AssignmentDetailsFrom {
   if (from === "working") return "working";
   if (from === "users") return "users";
+  if (from === "calendar-delivery") return "calendar-delivery";
+  if (from === "calendar-delivered") return "calendar-delivered";
   return "assignments";
 }
 
-export function getAssignmentListHref(from: Exclude<AssignmentDetailsFrom, "users">) {
-  return from === "working"
-    ? routes.admin.working
-    : routes.admin.assignments;
+export function getAssignmentListHref(
+  from: Exclude<
+    AssignmentDetailsFrom,
+    "users" | "calendar-delivery" | "calendar-delivered"
+  >
+) {
+  return from === "working" ? routes.admin.working : routes.admin.assignments;
 }
 
 export function getAssignmentDetailsBackHref(
   from: AssignmentDetailsFrom,
-  userId: string | null | undefined
+  userId: string | null | undefined,
+  calendarDate?: string | null
 ) {
   if (from === "users") {
     return routes.admin.userDetails(userId ?? "1");
+  }
+
+  if (from === "calendar-delivery") {
+    return routes.admin.calendarDelivery(calendarDate ?? "");
+  }
+
+  if (from === "calendar-delivered") {
+    return routes.admin.calendarDelivered(calendarDate ?? "");
   }
 
   return getAssignmentListHref(from);
@@ -76,11 +121,18 @@ export function getActiveAdminNavHref(
     if (origin === "users") {
       return routes.admin.users;
     }
+    if (origin === "calendar-delivery" || origin === "calendar-delivered") {
+      return routes.admin.calendar;
+    }
     return getAssignmentListHref(origin);
   }
 
   if (isUserDetailsPath(pathname)) {
     return routes.admin.users;
+  }
+
+  if (isCalendarSubPath(pathname)) {
+    return routes.admin.calendar;
   }
 
   const navRoutes = [

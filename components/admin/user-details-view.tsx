@@ -33,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
+import { adminTokens, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -296,7 +296,12 @@ function UserAssignmentsSection({
 export function UserDetailsView({ user }: { user: UserDetails }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <Card className="shrink-0 gap-0 overflow-hidden border-0 pt-0 shadow-none ring-1 ring-foreground/10">
+      <Card
+        className={cn(
+          "shrink-0 gap-0 overflow-hidden pt-0 shadow-none",
+          adminTokens.containerBorder
+        )}
+      >
         <CardHeader className="space-y-0 border-b border-border/60 px-5 py-4">
           <CardTitle
             className="text-2xl font-bold tracking-tight"

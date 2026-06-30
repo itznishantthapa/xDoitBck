@@ -26,12 +26,13 @@ export const calendarData: CalendarData = {
 
   calendarDateMeta: [
     {
-      date: "2026-06-03",
-      isDelivery: false,
+      date: "2026-06-12",
+      isDelivery: true,
       isDelivered: true,
       metaAssignments: [
         { id: 1, metaAssignmentName: "Ecommerce Presentation" },
         { id: 2, metaAssignmentName: "Ecommerce Case Study" },
+        { id: 7, metaAssignmentName: "Product Launch Presentation" },
       ],
     },
     {
@@ -64,14 +65,6 @@ export const calendarData: CalendarData = {
       isDelivered: true,
       metaAssignments: [
         { id: 6, metaAssignmentName: "Quarterly Sales Report" },
-      ],
-    },
-    {
-      date: "2026-06-30",
-      isDelivery: true,
-      isDelivered: false,
-      metaAssignments: [
-        { id: 7, metaAssignmentName: "Product Launch Presentation" },
       ],
     },
     {

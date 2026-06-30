@@ -30,10 +30,10 @@ const statCards: {
     trend: formatTrend(stats.assignments.growthPercentage),
   },
   {
-    id: "payments",
-    title: "Payment",
-    value: stats.payments.total,
-    trend: formatTrend(stats.payments.growthPercentage),
+    id: "revenue",
+    title: "Revenue",
+    value: stats.revenue.total,
+    trend: formatTrend(stats.revenue.growthPercentage),
   },
   {
     id: "deliveries",
@@ -42,16 +42,26 @@ const statCards: {
     trend: formatTrend(stats.deliveries.growthPercentage),
   },
   {
-    id: "mentors",
-    title: "Mentors",
-    value: stats.mentors.total,
-    trend: formatTrend(stats.mentors.growthPercentage),
+    id: "working",
+    title: "Working",
+    value: stats.working.total,
+    trend: {
+      value: "",
+      direction: "up",
+      label: "currently added",
+      icon: "added",
+    },
   },
   {
-    id: "students",
-    title: "Students",
-    value: stats.students.total,
-    trend: formatTrend(stats.students.growthPercentage),
+    id: "payment",
+    title: "Payment",
+    value: stats.pendingPayments.total,
+    trend: {
+      value: "",
+      direction: "up",
+      label: "verification needed",
+      icon: "verification",
+    },
   },
 ];
 
@@ -79,11 +89,11 @@ const assignmentCompletionChart = {
 
 export default function DashboardPage() {
   return (
-    <div className="flex h-full min-h-0 flex-col gap-5 pt-6">
+    <div className="flex w-full min-w-0 flex-col gap-5 pt-4 lg:h-full lg:min-h-0 lg:pt-6">
       <DashboardToolbar />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row lg:items-stretch">
-        <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-5">
+      <div className="flex flex-col gap-5 lg:min-h-0 lg:flex-1 lg:flex-row lg:items-stretch">
+        <div className="grid min-w-0 flex-1 gap-5 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {statCards.map((stat) => (
               <StatsCard
@@ -98,12 +108,15 @@ export default function DashboardPage() {
 
           <AssignmentCompletionAreaChart
             data={assignmentCompletionChart}
-            className="min-h-0 w-full"
+            className="min-h-[280px] w-full lg:min-h-0"
           />
         </div>
 
-        <aside className="flex min-h-0 w-full shrink-0 lg:w-80 xl:w-[22rem]">
-          <AssignmentPieChart data={assignmentsPie} className="w-full" />
+        <aside className="flex w-full shrink-0 lg:min-h-0 lg:w-80 xl:w-88">
+          <AssignmentPieChart
+            data={assignmentsPie}
+            className="min-h-[320px] w-full lg:h-full lg:min-h-0"
+          />
         </aside>
       </div>
     </div>

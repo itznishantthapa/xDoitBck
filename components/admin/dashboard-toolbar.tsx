@@ -22,11 +22,24 @@ export function DashboardToolbar() {
   }, []);
 
   return (
-    <div className="flex shrink-0 items-center justify-between gap-8">
-      <AdminPageTitle title="Dashboard" />
+    <div className="flex w-full min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:gap-4 lg:gap-6">
+      <div className="flex min-w-0 items-start justify-between gap-3 sm:block sm:max-w-[42%] lg:max-w-[36%] xl:max-w-none">
+        <AdminPageTitle title="Dashboard" />
 
-      <div className="flex shrink-0 items-center gap-4">
-        <label className="relative block w-full max-w-sm">
+        {mounted && userName ? (
+          <Image
+            src="/avatar.png"
+            alt={userName}
+            width={44}
+            height={44}
+            priority
+            className="size-10 shrink-0 rounded-full object-cover sm:hidden"
+          />
+        ) : null}
+      </div>
+
+      <div className="flex min-w-0 flex-1 items-center gap-3 sm:justify-end lg:gap-4">
+        <label className="relative min-w-0 flex-1 sm:max-w-40 md:max-w-48 lg:max-w-56 xl:max-w-64">
           <HugeiconsIcon
             icon={Search01Icon}
             size={18}
@@ -38,15 +51,15 @@ export function DashboardToolbar() {
             placeholder="Search"
             aria-label="Search"
             className={cn(
-              "h-10 w-56 rounded-xl border-0 bg-card pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10 sm:w-64",
+              "h-10 w-full min-w-0 rounded-xl border-0 bg-card pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10",
               "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
             )}
           />
         </label>
 
         {mounted && userName ? (
-          <div className="flex shrink-0 items-center gap-3">
-            <div className="min-w-0 text-right">
+          <div className="hidden shrink-0 items-center gap-2 sm:flex sm:gap-3">
+            <div className="min-w-0 max-w-[7.5rem] text-right md:max-w-32 lg:max-w-36">
               <p
                 className="truncate text-base font-semibold leading-tight tracking-tight"
                 style={{ color: TEXT_DARK }}
@@ -54,7 +67,7 @@ export function DashboardToolbar() {
                 {userName}
               </p>
               <p
-                className="text-sm font-medium leading-tight"
+                className="truncate text-sm font-medium leading-tight"
                 style={{ color: TEXT_MUTED }}
               >
                 Admin

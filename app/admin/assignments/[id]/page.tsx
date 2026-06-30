@@ -19,6 +19,7 @@ export default function AssignmentDetailsPage() {
   const assignmentId = params.id;
   const from = getAssignmentDetailsOrigin(searchParams.get("from"));
   const userId = searchParams.get("userId");
+  const calendarDate = searchParams.get("date");
   const response = getAssignmentProgress(assignmentId);
 
   return (
@@ -29,7 +30,7 @@ export default function AssignmentDetailsPage() {
         size="sm"
         className="w-fit shrink-0 gap-1.5 px-2 text-muted-foreground hover:bg-muted/50 hover:text-foreground"
         onClick={() =>
-          router.push(getAssignmentDetailsBackHref(from, userId))
+          router.push(getAssignmentDetailsBackHref(from, userId, calendarDate))
         }
       >
         <HugeiconsIcon icon={ArrowLeft01Icon} size={18} strokeWidth={1.75} />

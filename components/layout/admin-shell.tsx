@@ -102,6 +102,14 @@ function getPageTitle(pathname: string) {
     return "User Details";
   }
 
+  if (pathname.startsWith(`${routes.admin.calendar}/delivery`)) {
+    return "Delivery Assignments";
+  }
+
+  if (pathname.startsWith(`${routes.admin.calendar}/delivered`)) {
+    return "Delivered Assignments";
+  }
+
   return pageTitles[pathname] ?? "Dashboard";
 }
 
@@ -185,10 +193,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider delayDuration={200}>
       <div
-        className="flex min-h-svh w-full"
+        className="flex min-h-svh w-full flex-col lg:flex-row"
         style={{ backgroundColor: WHITE }}
       >
-        <aside className="sticky top-0 z-20 flex h-svh w-23 shrink-0 justify-center overflow-visible py-4 pl-4">
+        <aside className="sticky top-0 z-20 hidden h-svh w-23 shrink-0 justify-center overflow-visible py-4 pl-4 lg:flex">
           <nav
             aria-label="Admin navigation"
             className={cn(
@@ -199,14 +207,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Link
               href={routes.admin.dashboard}
               prefetch={false}
+              draggable={false}
+              onDragStart={(event) => event.preventDefault()}
               aria-label={brand}
-              className={cn("mx-auto mb-6 block shrink-0 overflow-hidden", adminTokens.sidebarLogoRadius)}
+              className={cn(
+                "mx-auto mb-6 block shrink-0 select-none overflow-hidden",
+                adminTokens.sidebarLogoRadius
+              )}
             >
               <Image
                 src="/logo.png"
                 alt={brand}
                 width={50}
                 height={50}
+                draggable={false}
                 className={cn("size-11 object-cover", adminTokens.sidebarLogoRadius)}
                 priority
               />
@@ -248,16 +262,42 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ariaLabel="Confirm log out"
         />
 
-        <main className="flex h-svh min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col lg:h-svh lg:overflow-hidden">
           {!isDashboard ? (
-            <header className="shrink-0 px-6 pb-2 pt-7 md:px-8">
+            <header className="shrink-0 px-4 pb-2 pt-5 md:px-8 md:pt-7">
               <AdminPageTitle title={title} />
             </header>
           ) : null}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-6 pb-4 pt-1 md:px-8">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] pt-1 md:px-8 lg:overflow-hidden lg:pb-4">
             {children}
           </div>
         </main>
+
+        <nav
+          aria-label="Admin navigation"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 lg:hidden"
+          style={{ backgroundColor: BG_SIDEBAR }}
+        >
+          <div className="flex items-stretch px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+            <div className="relative min-w-0 flex-1 px-1">
+              <SidebarAnimatedNav
+                mainItems={navigation}
+                activeHref={activeNavHref}
+                icons={navIcons}
+                badges={navBadges}
+                orientation="horizontal"
+              />
+            </div>
+            <button
+              type="button"
+              aria-label="Log out"
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors"
+            >
+              <AppIcon icon={Logout01Icon} size={20} color={BOOKED_TEXT} />
+            </button>
+          </div>
+        </nav>
       </div>
     </TooltipProvider>
   );
