@@ -10,7 +10,10 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 let refreshPromise: Promise<string> | null = null;
 
 const isPublicAuthRequest = (url?: string) =>
-  url?.includes(endpoints.login) || url?.includes(endpoints.refresh);
+  url?.includes(endpoints.login) ||
+  url?.includes(endpoints.totpSetup) ||
+  url?.includes(endpoints.totpVerify) ||
+  url?.includes(endpoints.refresh);
 
 const shouldLogoutOnRefreshFailure = (refreshError: unknown) => {
   if (

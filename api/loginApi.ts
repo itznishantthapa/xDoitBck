@@ -19,10 +19,19 @@ export interface AuthTokensResponse {
   refresh: string;
 }
 
-export interface LoginResponse {
+export interface CompleteLoginResponse {
   message: string;
+  step: "complete";
   tokens: AuthTokensResponse;
   user: AdminUserResponse;
+}
+
+export interface PasswordLoginResponse {
+  message: string;
+  step: "totp_setup" | "totp_verify";
+  setup_token?: string;
+  verify_token?: string;
+  otpauth_uri?: string;
 }
 
 export interface MeResponse {
@@ -34,8 +43,32 @@ export async function loginRequest(payload: {
   username: string;
   password: string;
 }) {
-  const { data } = await API_CLIENT.post<LoginResponse>(
+  const { data } = await API_CLIENT.post<PasswordLoginResponse>(
     endpoints.login,
+    payload
+  );
+
+  return data;
+}
+
+export async function totpSetupRequest(payload: {
+  setup_token: string;
+  code: string;
+}) {
+  const { data } = await API_CLIENT.post<CompleteLoginResponse>(
+    endpoints.totpSetup,
+    payload
+  );
+
+  return data;
+}
+
+export async function totpVerifyRequest(payload: {
+  verify_token: string;
+  code: string;
+}) {
+  const { data } = await API_CLIENT.post<CompleteLoginResponse>(
+    endpoints.totpVerify,
     payload
   );
 

@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ComponentProps, type ReactNode, type RefObject } from "react";
 
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
+import { AddAssignmentToWorkingButton } from "@/components/admin/add-assignment-to-working-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -273,6 +274,13 @@ export function AssignmentProgressTracker({
               </div>
             </div>
           </div>
+
+          <AddAssignmentToWorkingButton
+            assignmentId={progress.id}
+            assignmentName={progress.title}
+            isWorking={progress.isWorking}
+            className="shrink-0"
+          />
         </div>
       </CardHeader>
 

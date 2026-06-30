@@ -10,6 +10,7 @@ import {
   Home01Icon,
   Logout01Icon,
   NoteIcon,
+  Notification01Icon,
   UserMultipleIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -57,6 +58,12 @@ const navigation = [
     icon: "users",
   },
   {
+    id: "notifications",
+    label: "Notification",
+    href: routes.admin.notifications,
+    icon: "notifications",
+  },
+  {
     id: "assignments",
     label: "Assignments",
     href: routes.admin.assignments,
@@ -75,12 +82,14 @@ const pageTitles: Record<string, string> = {
   [routes.admin.users]: "Users",
   [routes.admin.assignments]: "Assignments",
   [routes.admin.working]: "Working",
+  [routes.admin.notifications]: "Notification",
   [routes.admin.calendar]: "Calendar",
 };
 
 const navIcons = {
   dashboard: Home01Icon,
   users: UserMultipleIcon,
+  notifications: Notification01Icon,
   assignments: NoteIcon,
   working: Folder01Icon,
   calendar: CalendarDaysIcon,

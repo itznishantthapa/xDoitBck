@@ -44,6 +44,7 @@ export const routes = {
       return `/admin/assignments/${id}?${params.toString()}`;
     },
     working: "/admin/working",
+    notifications: "/admin/notifications",
     calendar: "/admin/calendar",
     calendarDelivery: (date: string) =>
       `/admin/calendar/delivery?date=${encodeURIComponent(date)}`,
@@ -141,6 +142,7 @@ export function getActiveAdminNavHref(
     routes.admin.users,
     routes.admin.assignments,
     routes.admin.working,
+    routes.admin.notifications,
   ] as const;
 
   return navRoutes.find((href) => href === pathname) ?? routes.admin.dashboard;

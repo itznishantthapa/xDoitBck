@@ -48,6 +48,12 @@ type UsersInfiniteResponse = {
   has_more: boolean;
 };
 
+type UsersSearchResponse = {
+  message: string;
+  users: AdminUser[];
+  total_count: number;
+};
+
 type UserDetailsResponse = {
   message: string;
   user: UserDetails;
@@ -60,6 +66,20 @@ type UserAssignmentsInfiniteResponse = {
   next_offset: number | null;
   has_more: boolean;
 };
+
+export async function searchUsers(username: string) {
+  const { data } = await API_CLIENT.get<UsersSearchResponse>(
+    endpoints.usersSearch,
+    {
+      params: { username },
+    }
+  );
+
+  return {
+    items: data.users,
+    totalCount: data.total_count,
+  };
+}
 
 export async function getUsersInfinite(offset: number, limit: number) {
   const { data } = await API_CLIENT.get<UsersInfiniteResponse>(endpoints.users, {
@@ -106,6 +126,23 @@ export async function deleteUser(payload: { userId: string }) {
   const { data } = await API_CLIENT.post<{ message: string }>(
     endpoints.usersDelete,
     { user_id: payload.userId }
+  );
+
+  return data;
+}
+
+export async function resetUserPassword(payload: {
+  userId: string;
+  password: string;
+  confirmPassword: string;
+}) {
+  const { data } = await API_CLIENT.post<{ message: string }>(
+    endpoints.usersUpdatePassword,
+    {
+      user_id: payload.userId,
+      password: payload.password,
+      confirm_password: payload.confirmPassword,
+    }
   );
 
   return data;

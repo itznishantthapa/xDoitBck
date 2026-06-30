@@ -69,6 +69,7 @@ export type AssignmentProgress = {
   work_type: string;
   status: string;
   delivery_date: string | null;
+  isWorking: boolean;
   steps: AssignmentProgressSteps;
 };
 

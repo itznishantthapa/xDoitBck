@@ -30,7 +30,7 @@ export type DashboardResponse = {
     assignments: DashboardStat;
     revenue: DashboardStat;
     deliveries: DashboardStat;
-    working: DashboardStat;
+    changes: DashboardStat;
     pendingPayments: DashboardStat;
   };
   assignmentBreakdown: {

@@ -67,6 +67,7 @@ export type AssignmentProgress = {
   work_type: string;
   status: string;
   delivery_date: string | null;
+  isWorking: boolean;
   steps: AssignmentProgressSteps;
 };
 
@@ -86,6 +87,7 @@ const assignmentProgressMock: AssignmentProgress = {
   work_type: "Individual",
   status: "doing",
   delivery_date: "2026-07-30",
+  isWorking: false,
   steps: {
     provided: {
       date: "21 Jun 2026 10:50",

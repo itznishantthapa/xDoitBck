@@ -2,15 +2,16 @@
 
 import {
   Delete02Icon,
-  Edit02Icon,
+  PasswordValidationIcon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
+import { ResetUserPasswordModal } from "@/components/custom/reset-user-password-modal";
 import {
   Card,
   CardContent,
@@ -36,7 +37,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AdminUser } from "@/api/userApi";
-import { useDeleteUserMutation, useInfiniteUsersQuery } from "@/hooks/query";
+import {
+  useDeleteUserMutation,
+  useInfiniteUsersQuery,
+  useResetUserPasswordMutation,
+  useSearchUsersQuery,
+} from "@/hooks/query";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
@@ -83,10 +89,18 @@ function formatCreatedAt(value: string) {
 export function UsersTable({ pageSize = 8 }: UsersTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [activeSearch, setActiveSearch] = useState("");
   const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [userToResetPassword, setUserToResetPassword] = useState<AdminUser | null>(
+    null
+  );
   const [deleteError, setDeleteError] = useState("");
+  const [resetPasswordError, setResetPasswordError] = useState("");
 
+  const isSearching = Boolean(activeSearch);
   const deleteUserMutation = useDeleteUserMutation();
+  const resetUserPasswordMutation = useResetUserPasswordMutation();
 
   const {
     data,
@@ -96,22 +110,35 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteUsersQuery({ limit: pageSize });
+  } = useInfiniteUsersQuery({ limit: pageSize, enabled: !isSearching });
+
+  const {
+    data: searchData,
+    isLoading: isSearchLoading,
+    isError: isSearchError,
+    error: searchError,
+  } = useSearchUsersQuery(activeSearch, { enabled: isSearching });
 
   const allUsers = useMemo(
     () => data?.pages.flatMap((usersPage) => usersPage.items) ?? [],
     [data]
   );
 
-  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const searchUsers = searchData?.items ?? [];
+  const totalCount = isSearching
+    ? (searchData?.totalCount ?? 0)
+    : (data?.pages[0]?.totalCount ?? 0);
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const paginatedUsers = useMemo(() => {
+    const sourceUsers = isSearching ? searchUsers : allUsers;
     const start = (page - 1) * pageSize;
-    return allUsers.slice(start, start + pageSize);
-  }, [allUsers, page, pageSize]);
+    return sourceUsers.slice(start, start + pageSize);
+  }, [allUsers, isSearching, page, pageSize, searchUsers]);
 
   useEffect(() => {
+    if (isSearching) return;
+
     const neededCount = page * pageSize;
 
     if (
@@ -123,6 +150,7 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
     }
   }, [
     allUsers.length,
+    isSearching,
     page,
     pageSize,
     hasNextPage,
@@ -147,6 +175,14 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
   const goToNext = () =>
     setPage((current) => Math.min(totalPages, current + 1));
 
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+
+    const trimmedSearch = searchInput.trim();
+    setActiveSearch(trimmedSearch);
+    setPage(1);
+  };
+
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
 
@@ -163,14 +199,51 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
     }
   };
 
-  if (isLoading) {
+  const handleResetPassword = async ({
+    password,
+    confirmPassword,
+  }: {
+    password: string;
+    confirmPassword: string;
+  }) => {
+    if (!userToResetPassword) return;
+
+    setResetPasswordError("");
+
+    try {
+      await resetUserPasswordMutation.mutateAsync({
+        userId: userToResetPassword.id,
+        password,
+        confirmPassword,
+      });
+      setUserToResetPassword(null);
+    } catch (mutationError) {
+      setResetPasswordError(
+        getApiErrorMessage(mutationError, "Could not update password.")
+      );
+    }
+  };
+
+  if (!isSearching && isLoading) {
     return null;
   }
 
-  if (isError) {
+  if (isSearching && isSearchLoading) {
+    return null;
+  }
+
+  if (!isSearching && isError) {
     return (
       <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
         {getApiErrorMessage(error, "Could not load users.")}
+      </div>
+    );
+  }
+
+  if (isSearching && isSearchError) {
+    return (
+      <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+        {getApiErrorMessage(searchError, "Could not search users.")}
       </div>
     );
   }
@@ -194,8 +267,10 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
           />
           <Input
             type="text"
-            disabled
-            placeholder="Search users (coming soon)"
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search by username (Enter)"
             aria-label="Search users"
             className={cn(
               "h-10 rounded-xl border-0 bg-background pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10",
@@ -247,11 +322,19 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
                       type="button"
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Edit ${user.username}`}
+                      aria-label={`Reset password for ${user.username}`}
                       className="text-muted-foreground hover:text-foreground"
-                      onClick={(event) => event.stopPropagation()}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setResetPasswordError("");
+                        setUserToResetPassword(user);
+                      }}
                     >
-                      <HugeiconsIcon icon={Edit02Icon} size={16} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={PasswordValidationIcon}
+                        size={16}
+                        strokeWidth={1.75}
+                      />
                     </Button>
                     <Button
                       type="button"
@@ -277,7 +360,13 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
       <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground">
           Showing {rangeStart}-{rangeEnd} of {totalCount} users
-          {isFetchingNextPage ? " · Loading more..." : ""}
+          {isSearching
+            ? activeSearch
+              ? ` · Search: "${activeSearch}"`
+              : ""
+            : isFetchingNextPage
+              ? " · Loading more..."
+              : ""}
         </p>
 
         <Pagination className="mx-0 w-auto">
@@ -298,18 +387,32 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
                 href="#"
                 text="Next"
                 className={cn(
-                  (page === totalPages || isFetchingNextPage) &&
+                  (page === totalPages || (!isSearching && isFetchingNextPage)) &&
                     "pointer-events-none opacity-50"
                 )}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (page < totalPages && !isFetchingNextPage) goToNext();
+                  if (page < totalPages && (isSearching || !isFetchingNextPage)) {
+                    goToNext();
+                  }
                 }}
               />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
       </CardFooter>
+
+      <ResetUserPasswordModal
+        open={userToResetPassword !== null}
+        username={userToResetPassword?.username ?? ""}
+        isPending={resetUserPasswordMutation.isPending}
+        error={resetPasswordError}
+        onUpdate={handleResetPassword}
+        onClose={() => {
+          setResetPasswordError("");
+          setUserToResetPassword(null);
+        }}
+      />
 
       <ConfirmationModal
         open={userToDelete !== null}

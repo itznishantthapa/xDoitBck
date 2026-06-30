@@ -1,5 +1,7 @@
 export const endpoints = {
   login: "/api/admin/auth/login/",
+  totpSetup: "/api/admin/auth/totp/setup/",
+  totpVerify: "/api/admin/auth/totp/verify/",
   me: "/api/admin/auth/me/",
   refresh: "/api/admin/auth/refresh-token/",
   logout: "/api/admin/auth/logout/",
@@ -8,7 +10,9 @@ export const endpoints = {
   calendarMarkBusy: "/api/admin/calendar/mark-busy/",
   calendarMarkAvailable: "/api/admin/calendar/mark-available/",
   users: "/api/admin/users/",
+  usersSearch: "/api/admin/users/search/",
   usersDelete: "/api/admin/users/delete/",
+  usersUpdatePassword: "/api/admin/users/update-password/",
   userDetails: (userId: string) => `/api/admin/users/${userId}/`,
   userAssignments: (userId: string) =>
     `/api/admin/users/${userId}/assignments/`,
@@ -24,4 +28,7 @@ export const endpoints = {
   working: "/api/admin/working/",
   workingRemove: "/api/admin/working/remove/",
   badges: "/api/admin/badges/",
+  notifications: "/api/admin/notifications/",
+  notificationsCreate: "/api/admin/notifications/create/",
+  notificationsResend: "/api/admin/notifications/resend/",
 } as const;

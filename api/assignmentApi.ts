@@ -10,7 +10,13 @@ export type AssignmentStatus =
   | "completed"
   | "unsubmitted";
 
-export type AssignmentTabStatus = "pending" | "doing" | "completed" | "rejected";
+export type AssignmentTabStatus =
+  | "pending"
+  | "doing"
+  | "completed"
+  | "changes"
+  | "rejected"
+  | "all";
 
 export type AdminAssignment = {
   id: string;

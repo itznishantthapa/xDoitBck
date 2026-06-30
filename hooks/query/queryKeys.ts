@@ -24,10 +24,15 @@ export const queryKeys = {
     all: ["working"] as const,
     infinite: () => ["working", "infinite"] as const,
   },
+  notifications: {
+    all: ["notifications"] as const,
+    infinite: () => ["notifications", "infinite"] as const,
+  },
   users: {
     all: ["users"] as const,
     list: (filters?: Record<string, unknown>) =>
       ["users", "list", filters ?? {}] as const,
+    search: (username: string) => ["users", "search", username] as const,
     infinite: (filters?: Record<string, unknown>) =>
       ["users", "infinite", filters ?? {}] as const,
     detail: (userId: string) => ["users", "detail", userId] as const,

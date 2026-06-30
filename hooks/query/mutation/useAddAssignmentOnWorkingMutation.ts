@@ -8,11 +8,14 @@ export function useAddAssignmentOnWorkingMutation() {
 
   return useMutation({
     mutationFn: addAssignmentOnWorking,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.assignments.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.working.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
       queryClient.invalidateQueries({ queryKey: queryKeys.badges });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignmentProgress.detail(variables.assignmentId),
+      });
     },
   });
 }

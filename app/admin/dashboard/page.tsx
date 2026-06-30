@@ -65,14 +65,14 @@ export default function DashboardPage() {
       trend: formatTrend(stats.deliveries.growthPercentage),
     },
     {
-      id: "working",
-      title: "Working",
-      value: stats.working.total,
+      id: "changes",
+      title: "Changes",
+      value: stats.changes.total,
       trend: {
         value: "",
         direction: "up",
-        label: "currently added",
-        icon: "added",
+        label: "request made",
+        icon: "changes",
       },
     },
     {

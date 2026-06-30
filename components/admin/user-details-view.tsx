@@ -78,7 +78,7 @@ const statCards: {
   accent: string;
 }[] = [
   { key: "totalGiven", title: "Total Given", accent: TEXT_DARK },
-  { key: "totalInReview", title: "In Review", accent: "#4da1f7" },
+  { key: "totalInReview", title: "Pending", accent: "#4da1f7" },
   { key: "totalDoing", title: "Doing", accent: "#c9780a" },
   { key: "totalCompleted", title: "Completed", accent: SUCCESS },
   { key: "totalRejected", title: "Rejected", accent: "#f03063" },

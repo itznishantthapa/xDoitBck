@@ -53,11 +53,25 @@ type AssignmentsTableProps = {
   pageSize?: number;
 };
 
-const statusTabs: { value: AssignmentTabStatus; label: string }[] = [
-  { value: "pending", label: "Pending" },
-  { value: "doing", label: "Doing" },
-  { value: "completed", label: "Completed" },
-  { value: "rejected", label: "Rejected" },
+const statusTabs: {
+  value: AssignmentTabStatus;
+  label: string;
+  className: string;
+}[] = [
+  { value: "pending", label: "Pending", className: "border-[#895ef6] text-[#895ef6]" },
+  { value: "doing", label: "Doing", className: "border-[#c9a208] text-[#9a7b0a]" },
+  {
+    value: "completed",
+    label: "Completed",
+    className: "border-emerald-600 text-emerald-600",
+  },
+  {
+    value: "changes",
+    label: "Changes",
+    className: "border-orange-600 text-orange-600",
+  },
+  { value: "rejected", label: "Rejected", className: "border-[#f03063] text-[#f03063]" },
+  { value: "all", label: "All", className: "border-foreground text-foreground" },
 ];
 
 const statusStyles: Record<
@@ -276,7 +290,6 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
       <div className="flex shrink-0 flex-wrap gap-2 border-b px-4 py-3">
         {statusTabs.map((tab) => {
           const isActive = statusFilter === tab.value;
-          const style = statusStyles[tab.value];
 
           return (
             <Button
@@ -289,7 +302,7 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
               className={cn(
                 "rounded-lg border bg-transparent shadow-none",
                 isActive
-                  ? style.className
+                  ? tab.className
                   : "border-transparent text-muted-foreground ring-1 ring-foreground/10"
               )}
             >

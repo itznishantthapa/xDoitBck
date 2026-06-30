@@ -1,15 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import { Search01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 
 import { AdminPageTitle } from "@/components/layout/admin-page-title";
-import { Input } from "@/components/ui/input";
 import { TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { useAuthStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
 
 export function DashboardToolbar() {
   const [mounted, setMounted] = useState(false);
@@ -38,25 +34,7 @@ export function DashboardToolbar() {
         ) : null}
       </div>
 
-      <div className="flex min-w-0 flex-1 items-center gap-3 sm:justify-end lg:gap-4">
-        <label className="relative min-w-0 flex-1 sm:max-w-40 md:max-w-48 lg:max-w-56 xl:max-w-64">
-          <HugeiconsIcon
-            icon={Search01Icon}
-            size={18}
-            strokeWidth={1.75}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            type="text"
-            placeholder="Search"
-            aria-label="Search"
-            className={cn(
-              "h-10 w-full min-w-0 rounded-xl border-0 bg-card pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10",
-              "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
-            )}
-          />
-        </label>
-
+      <div className="hidden min-w-0 flex-1 items-center justify-end gap-3 sm:flex lg:gap-4">
         {mounted && userName ? (
           <div className="hidden shrink-0 items-center gap-2 sm:flex sm:gap-3">
             <div className="min-w-0 max-w-[7.5rem] text-right md:max-w-32 lg:max-w-36">

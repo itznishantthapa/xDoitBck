@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Edit02Icon,
   FolderAddIcon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export type StatsCardTrendIcon = "added" | "verification";
+export type StatsCardTrendIcon = "added" | "verification" | "changes";
 
 export type StatsCardTrend = {
   value: string;
@@ -26,11 +27,13 @@ export type StatsCardTrend = {
 const trendIconMap = {
   added: FolderAddIcon,
   verification: InformationCircleIcon,
+  changes: Edit02Icon,
 } as const;
 
 const trendIconClassName = {
   added: "text-[#4da1f7]",
   verification: "text-emerald-600",
+  changes: "text-orange-600",
 } as const;
 
 export type StatsCardPlatformBreakdown = {
