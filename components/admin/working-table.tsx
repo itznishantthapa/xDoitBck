@@ -5,10 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type {
-  WorkingAssignment,
-  WorkingAssignmentStatus,
-} from "@/mock/WorkingMocked";
+import type { AssignmentStatus } from "@/api/assignmentApi";
+import type { WorkingAssignment } from "@/api/workingApi";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,39 +31,54 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import {
+  useInfiniteWorkingQuery,
+  useRemoveFromWorkingMutation,
+} from "@/hooks/query";
 import { routes } from "@/lib/routes";
 import { playRemoveSound } from "@/lib/play-sound";
+import { getApiErrorMessage } from "@/service/client";
+import { cn } from "@/lib/utils";
 
 type WorkingTableProps = {
-  assignments: WorkingAssignment[];
   pageSize?: number;
 };
 
-const statusStyles = {
+const statusStyles: Record<
+  AssignmentStatus,
+  { label: string; className: string }
+> = {
   pending: {
     label: "Pending",
     className: "border-[#895ef6] text-[#895ef6]",
-  },
-  review: {
-    label: "Review",
-    className: "border-[#4da1f7] text-[#4da1f7]",
-  },
-  completed: {
-    label: "Completed",
-    className: "border-emerald-600 text-emerald-600",
   },
   doing: {
     label: "Doing",
     className: "border-[#c9a208] text-[#9a7b0a]",
   },
+  completed: {
+    label: "Completed",
+    className: "border-emerald-600 text-emerald-600",
+  },
   rejected: {
     label: "Rejected",
     className: "border-[#f03063] text-[#f03063]",
   },
-} as const;
+  payment_pending: {
+    label: "Payment Pending",
+    className: "border-[#895ef6] text-[#895ef6]",
+  },
+  payment_rejected: {
+    label: "Payment Rejected",
+    className: "border-[#f03063] text-[#f03063]",
+  },
+  unsubmitted: {
+    label: "Unsubmitted",
+    className: "border-orange-600 text-orange-600",
+  },
+};
 
-function AssignmentStatusBadge({ status }: { status: WorkingAssignmentStatus }) {
+function AssignmentStatusBadge({ status }: { status: AssignmentStatus }) {
   const config = statusStyles[status];
 
   return (
@@ -96,9 +109,11 @@ function PaidBadge({ value }: { value: boolean }) {
 }
 
 function formatAssignmentDateRange(
-  providedDate: string,
-  deliveryDate: string
+  providedDate: string | null,
+  deliveryDate: string | null
 ) {
+  if (!providedDate || !deliveryDate) return "—";
+
   const delivery = new Date(`${deliveryDate}T00:00:00`);
   const deliveryLabel = delivery.toLocaleDateString("en-US", {
     month: "short",
@@ -122,16 +137,54 @@ function formatAssignmentDateRange(
   return `${startLabel} - ${deliveryLabel}`;
 }
 
-export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
+export function WorkingTable({ pageSize = 8 }: WorkingTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
+  const [actionError, setActionError] = useState("");
 
-  const totalPages = Math.max(1, Math.ceil(assignments.length / pageSize));
+  const removeFromWorkingMutation = useRemoveFromWorkingMutation();
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteWorkingQuery({ limit: pageSize });
+
+  const allAssignments = useMemo(
+    () => data?.pages.flatMap((workingPage) => workingPage.items) ?? [],
+    [data]
+  );
+
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const paginatedAssignments = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return assignments.slice(start, start + pageSize);
-  }, [assignments, page, pageSize]);
+    return allAssignments.slice(start, start + pageSize);
+  }, [allAssignments, page, pageSize]);
+
+  useEffect(() => {
+    const neededCount = page * pageSize;
+
+    if (
+      allAssignments.length < neededCount &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [
+    allAssignments.length,
+    page,
+    pageSize,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  ]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -139,8 +192,8 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
     }
   }, [page, totalPages]);
 
-  const rangeStart = assignments.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const rangeEnd = Math.min(page * pageSize, assignments.length);
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalCount);
 
   const handleRowClick = (id: string) => {
     router.push(routes.admin.assignmentDetails(id, "working"));
@@ -150,14 +203,49 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
   const goToNext = () =>
     setPage((current) => Math.min(totalPages, current + 1));
 
+  const handleRemoveFromWorking = async (assignment: WorkingAssignment) => {
+    setActionError("");
+
+    try {
+      await removeFromWorkingMutation.mutateAsync({
+        assignmentId: assignment.id,
+      });
+      playRemoveSound();
+      setPage(1);
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(
+          mutationError,
+          "Could not remove assignment from working."
+        )
+      );
+    }
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+        {getApiErrorMessage(error, "Could not load working assignments.")}
+      </div>
+    );
+  }
+
   return (
     <Card className="flex min-h-0 flex-1 flex-col pt-0">
       <CardHeader className="shrink-0 space-y-0 border-b py-4">
         <CardTitle className="text-base">Working Assignments</CardTitle>
-        <CardDescription>
-          Your currently added assignment tasks
-        </CardDescription>
+        <CardDescription>Your currently added assignment tasks</CardDescription>
       </CardHeader>
+
+      {actionError ? (
+        <p className="shrink-0 border-b px-4 py-2 text-sm font-medium text-[#f03063]">
+          {actionError}
+        </p>
+      ) : null}
 
       <CardContent className="min-h-0 flex-1 overflow-auto p-0">
         <Table>
@@ -196,7 +284,7 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                   <PaidBadge value={assignment.isPaid} />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {assignment.addedBy}
+                  {assignment.addedBy || "—"}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatAssignmentDateRange(
@@ -212,10 +300,14 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                       size="icon-sm"
                       aria-label={`Remove ${assignment.name}`}
                       className="text-muted-foreground hover:text-destructive"
+                      disabled={
+                        removeFromWorkingMutation.isPending &&
+                        removeFromWorkingMutation.variables?.assignmentId ===
+                          assignment.id
+                      }
                       onClick={(event) => {
                         event.stopPropagation();
-                        playRemoveSound();
-                        console.log(`${assignment.name} removed`);
+                        void handleRemoveFromWorking(assignment);
                       }}
                     >
                       <HugeiconsIcon
@@ -234,7 +326,8 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
 
       <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Showing {rangeStart}-{rangeEnd} of {assignments.length} assignments
+          Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
+          {isFetchingNextPage ? " · Loading more..." : ""}
         </p>
 
         <Pagination className="mx-0 w-auto">
@@ -255,11 +348,12 @@ export function WorkingTable({ assignments, pageSize = 8 }: WorkingTableProps) {
                 href="#"
                 text="Next"
                 className={cn(
-                  page === totalPages && "pointer-events-none opacity-50"
+                  (page === totalPages || isFetchingNextPage) &&
+                    "pointer-events-none opacity-50"
                 )}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (page < totalPages) goToNext();
+                  if (page < totalPages && !isFetchingNextPage) goToNext();
                 }}
               />
             </PaginationItem>

@@ -1,1 +1,27 @@
-// files to write endpoints for the api
+export const endpoints = {
+  login: "/api/admin/auth/login/",
+  me: "/api/admin/auth/me/",
+  refresh: "/api/admin/auth/refresh-token/",
+  logout: "/api/admin/auth/logout/",
+  dashboard: "/api/admin/dashboard/",
+  calendar: "/api/admin/calendar/",
+  calendarMarkBusy: "/api/admin/calendar/mark-busy/",
+  calendarMarkAvailable: "/api/admin/calendar/mark-available/",
+  users: "/api/admin/users/",
+  usersDelete: "/api/admin/users/delete/",
+  userDetails: (userId: string) => `/api/admin/users/${userId}/`,
+  userAssignments: (userId: string) =>
+    `/api/admin/users/${userId}/assignments/`,
+  assignments: "/api/admin/assignments/",
+  assignmentsDelete: "/api/admin/assignments/delete/",
+  assignmentsAddOnWorking: "/api/admin/assignments/add-on-working/",
+  assignmentProgress: (assignmentId: string) =>
+    `/api/admin/assignments/${assignmentId}/progress/`,
+  assignmentProgressReceived: "/api/admin/assignments/progress/received/",
+  assignmentProgressPayment: "/api/admin/assignments/progress/payment/",
+  assignmentProgressDoing: "/api/admin/assignments/progress/doing/",
+  assignmentProgressCompleted: "/api/admin/assignments/progress/completed/",
+  working: "/api/admin/working/",
+  workingRemove: "/api/admin/working/remove/",
+  badges: "/api/admin/badges/",
+} as const;

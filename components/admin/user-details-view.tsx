@@ -5,11 +5,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { AssignmentStatus } from "@/mock/AssignmentMocked";
-import type {
-  UserDetails,
-  UserDetailsAssignment,
-} from "@/mock/UserDetailsMocked";
+import type { AssignmentStatus } from "@/api/assignmentApi";
+import type { UserDetails } from "@/api/userApi";
 import {
   Card,
   CardContent,
@@ -33,8 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useInfiniteUserAssignmentsQuery } from "@/hooks/query";
 import { adminTokens, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
 
 const SUCCESS = "#08d203";
@@ -47,21 +46,29 @@ const statusStyles: Record<
     label: "Pending",
     className: "border-[#895ef6] text-[#895ef6]",
   },
-  review: {
-    label: "Review",
-    className: "border-[#4da1f7] text-[#4da1f7]",
+  doing: {
+    label: "Doing",
+    className: "border-[#c9a208] text-[#9a7b0a]",
   },
   completed: {
     label: "Completed",
     className: "border-emerald-600 text-emerald-600",
   },
-  doing: {
-    label: "Doing",
-    className: "border-[#c9a208] text-[#9a7b0a]",
-  },
   rejected: {
     label: "Rejected",
     className: "border-[#f03063] text-[#f03063]",
+  },
+  payment_pending: {
+    label: "Payment Pending",
+    className: "border-[#895ef6] text-[#895ef6]",
+  },
+  payment_rejected: {
+    label: "Payment Rejected",
+    className: "border-[#f03063] text-[#f03063]",
+  },
+  unsubmitted: {
+    label: "Unsubmitted",
+    className: "border-orange-600 text-orange-600",
   },
 };
 
@@ -117,40 +124,6 @@ function PaidBadge({ value }: { value: boolean }) {
   );
 }
 
-function usePaginatedItems<T>(items: T[], pageSize: number) {
-  const [page, setPage] = useState(1);
-
-  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
-
-  const paginatedItems = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return items.slice(start, start + pageSize);
-  }, [items, page, pageSize]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [items.length]);
-
-  useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
-    }
-  }, [page, totalPages]);
-
-  const rangeStart = items.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const rangeEnd = Math.min(page * pageSize, items.length);
-
-  return {
-    page,
-    totalPages,
-    paginatedItems,
-    rangeStart,
-    rangeEnd,
-    goToPrevious: () => setPage((current) => Math.max(1, current - 1)),
-    goToNext: () => setPage((current) => Math.min(totalPages, current + 1)),
-  };
-}
-
 function UserStatItem({
   title,
   value,
@@ -178,24 +151,95 @@ function UserStatItem({
 }
 
 function UserAssignmentsSection({
-  assignments,
   userId,
   pageSize = 5,
 }: {
-  assignments: UserDetailsAssignment[];
   userId: string;
   pageSize?: number;
 }) {
   const router = useRouter();
-  const pagination = usePaginatedItems(assignments, pageSize);
+  const [page, setPage] = useState(1);
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUserAssignmentsQuery({ userId, limit: pageSize });
+
+  const allAssignments = useMemo(
+    () => data?.pages.flatMap((assignmentsPage) => assignmentsPage.items) ?? [],
+    [data]
+  );
+
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const paginatedAssignments = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return allAssignments.slice(start, start + pageSize);
+  }, [allAssignments, page, pageSize]);
+
+  useEffect(() => {
+    const neededCount = page * pageSize;
+
+    if (
+      allAssignments.length < neededCount &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [
+    allAssignments.length,
+    page,
+    pageSize,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  ]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalCount);
+
+  const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
+  const goToNext = () =>
+    setPage((current) => Math.min(totalPages, current + 1));
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return (
+      <Card className="flex min-h-[280px] flex-1 flex-col pt-0">
+        <CardHeader className="shrink-0 space-y-0 border-b py-4">
+          <CardTitle className="text-base">Assignments</CardTitle>
+          <CardDescription>
+            Assignments submitted by this user
+          </CardDescription>
+        </CardHeader>
+        <div className="flex min-h-[220px] flex-1 items-center justify-center px-4 text-sm font-medium text-[#f03063]">
+          {getApiErrorMessage(error, "Could not load user assignments.")}
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col pt-0">
       <CardHeader className="shrink-0 space-y-0 border-b py-4">
         <CardTitle className="text-base">Assignments</CardTitle>
-        <CardDescription>
-          Assignments submitted by this user
-        </CardDescription>
+        <CardDescription>Assignments submitted by this user</CardDescription>
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 overflow-auto p-0">
@@ -211,7 +255,7 @@ function UserAssignmentsSection({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pagination.paginatedItems.map((assignment) => (
+            {paginatedAssignments.map((assignment) => (
               <TableRow
                 key={assignment.id}
                 className="cursor-pointer"
@@ -251,8 +295,8 @@ function UserAssignmentsSection({
 
       <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Showing {pagination.rangeStart}-{pagination.rangeEnd} of{" "}
-          {assignments.length} assignments
+          Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
+          {isFetchingNextPage ? " · Loading more..." : ""}
         </p>
 
         <Pagination className="mx-0 w-auto">
@@ -261,12 +305,10 @@ function UserAssignmentsSection({
               <PaginationPrevious
                 href="#"
                 text="Previous"
-                className={cn(
-                  pagination.page === 1 && "pointer-events-none opacity-50"
-                )}
+                className={cn(page === 1 && "pointer-events-none opacity-50")}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (pagination.page > 1) pagination.goToPrevious();
+                  if (page > 1) goToPrevious();
                 }}
               />
             </PaginationItem>
@@ -275,14 +317,12 @@ function UserAssignmentsSection({
                 href="#"
                 text="Next"
                 className={cn(
-                  pagination.page === pagination.totalPages &&
+                  (page === totalPages || isFetchingNextPage) &&
                     "pointer-events-none opacity-50"
                 )}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (pagination.page < pagination.totalPages) {
-                    pagination.goToNext();
-                  }
+                  if (page < totalPages && !isFetchingNextPage) goToNext();
                 }}
               />
             </PaginationItem>
@@ -339,10 +379,7 @@ export function UserDetailsView({ user }: { user: UserDetails }) {
         </div>
       </Card>
 
-      <UserAssignmentsSection
-        assignments={user.assignments}
-        userId={user.id}
-      />
+      <UserAssignmentsSection userId={user.id} />
     </div>
   );
 }

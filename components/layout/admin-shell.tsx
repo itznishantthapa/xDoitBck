@@ -18,8 +18,6 @@ import type { IconSvgElement } from "@hugeicons/react";
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
 import { AdminPageTitle } from "@/components/layout/admin-page-title";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
-import { assignments } from "@/mock/AssignmentMocked";
-import { workingAssignments } from "@/mock/WorkingMocked";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +32,7 @@ import {
   WHITE,
 } from "@/lib/colors";
 import { routes, getActiveAdminNavHref, isAssignmentDetailsPath, isUserDetailsPath } from "@/lib/routes";
-import { useAuthStore } from "@/lib/store";
+import { useBadgeNumbersQuery, useLogoutMutation } from "@/hooks/query";
 import { cn } from "@/lib/utils";
 
 const brand = "Doit.";
@@ -86,11 +84,6 @@ const navIcons = {
   assignments: NoteIcon,
   working: Folder01Icon,
   calendar: CalendarDaysIcon,
-} as const;
-
-const navBadges = {
-  assignments: assignments.filter((item) => item.status === "pending").length,
-  working: workingAssignments.length,
 } as const;
 
 function getPageTitle(pathname: string) {
@@ -176,7 +169,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const logout = useAuthStore((state) => state.logout);
+  const logoutMutation = useLogoutMutation();
+  const { data: badgeNumbers } = useBadgeNumbersQuery();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const title = getPageTitle(pathname);
   const activeNavHref = getActiveAdminNavHref(
@@ -184,9 +178,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     searchParams.get("from")
   );
   const isDashboard = pathname === routes.admin.dashboard;
+  const navBadges = {
+    assignments: badgeNumbers?.pendingAssignments ?? 0,
+    working: badgeNumbers?.workingAssignments ?? 0,
+  };
 
-  const handleSignOut = () => {
-    logout();
+  const handleSignOut = async () => {
+    await logoutMutation.mutateAsync();
     router.push(routes.auth);
   };
 
@@ -254,9 +252,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           subtitle="Are you sure you want to log out of your account?"
           cancelLabel="Cancel"
           confirmLabel="Log out"
-          onConfirm={() => {
+          onConfirm={async () => {
             setIsLogoutModalOpen(false);
-            handleSignOut();
+            await handleSignOut();
           }}
           onClose={() => setIsLogoutModalOpen(false)}
           ariaLabel="Confirm log out"

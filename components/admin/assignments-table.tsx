@@ -9,8 +9,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Assignment, AssignmentStatus } from "@/mock/AssignmentMocked";
-
+import type {
+  AdminAssignment,
+  AssignmentStatus,
+  AssignmentTabStatus,
+} from "@/api/assignmentApi";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,18 +39,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import {
+  useAddAssignmentOnWorkingMutation,
+  useDeleteAssignmentMutation,
+  useInfiniteAssignmentsQuery,
+} from "@/hooks/query";
 import { routes } from "@/lib/routes";
 import { playAddWorkingSound } from "@/lib/play-sound";
+import { getApiErrorMessage } from "@/service/client";
+import { cn } from "@/lib/utils";
 
 type AssignmentsTableProps = {
-  assignments: Assignment[];
   pageSize?: number;
 };
 
-const statusTabs: { value: AssignmentStatus; label: string }[] = [
+const statusTabs: { value: AssignmentTabStatus; label: string }[] = [
   { value: "pending", label: "Pending" },
-  { value: "review", label: "Review" },
   { value: "doing", label: "Doing" },
   { value: "completed", label: "Completed" },
   { value: "rejected", label: "Rejected" },
@@ -61,21 +68,29 @@ const statusStyles: Record<
     label: "Pending",
     className: "border-[#895ef6] text-[#895ef6]",
   },
-  review: {
-    label: "Review",
-    className: "border-[#4da1f7] text-[#4da1f7]",
+  doing: {
+    label: "Doing",
+    className: "border-[#c9a208] text-[#9a7b0a]",
   },
   completed: {
     label: "Completed",
     className: "border-emerald-600 text-emerald-600",
   },
-  doing: {
-    label: "Doing",
-    className: "border-[#c9a208] text-[#9a7b0a]",
-  },
   rejected: {
     label: "Rejected",
     className: "border-[#f03063] text-[#f03063]",
+  },
+  payment_pending: {
+    label: "Payment Pending",
+    className: "border-[#895ef6] text-[#895ef6]",
+  },
+  payment_rejected: {
+    label: "Payment Rejected",
+    className: "border-[#f03063] text-[#f03063]",
+  },
+  unsubmitted: {
+    label: "Unsubmitted",
+    className: "border-orange-600 text-orange-600",
   },
 };
 
@@ -119,36 +134,64 @@ function formatDate(value: string | null) {
   });
 }
 
-export function AssignmentsTable({
-  assignments,
-  pageSize = 8,
-}: AssignmentsTableProps) {
+export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<AssignmentStatus>("pending");
-  const [assignmentToDelete, setAssignmentToDelete] = useState<Assignment | null>(
-    null
+  const [statusFilter, setStatusFilter] =
+    useState<AssignmentTabStatus>("pending");
+  const [assignmentToDelete, setAssignmentToDelete] =
+    useState<AdminAssignment | null>(null);
+  const [deleteError, setDeleteError] = useState("");
+  const [actionError, setActionError] = useState("");
+
+  const deleteAssignmentMutation = useDeleteAssignmentMutation();
+  const addAssignmentOnWorkingMutation = useAddAssignmentOnWorkingMutation();
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteAssignmentsQuery({ status: statusFilter, limit: pageSize });
+
+  const allAssignments = useMemo(
+    () => data?.pages.flatMap((assignmentsPage) => assignmentsPage.items) ?? [],
+    [data]
   );
 
-  const filteredAssignments = useMemo(() => {
-    return assignments.filter(
-      (assignment) => assignment.status === statusFilter
-    );
-  }, [assignments, statusFilter]);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredAssignments.length / pageSize)
-  );
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const paginatedAssignments = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return filteredAssignments.slice(start, start + pageSize);
-  }, [filteredAssignments, page, pageSize]);
+    return allAssignments.slice(start, start + pageSize);
+  }, [allAssignments, page, pageSize]);
 
   useEffect(() => {
     setPage(1);
   }, [statusFilter]);
+
+  useEffect(() => {
+    const neededCount = page * pageSize;
+
+    if (
+      allAssignments.length < neededCount &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [
+    allAssignments.length,
+    page,
+    pageSize,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  ]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -156,9 +199,8 @@ export function AssignmentsTable({
     }
   }, [page, totalPages]);
 
-  const rangeStart =
-    filteredAssignments.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const rangeEnd = Math.min(page * pageSize, filteredAssignments.length);
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalCount);
 
   const handleRowClick = (id: string) => {
     router.push(routes.admin.assignmentDetails(id, "assignments"));
@@ -167,6 +209,52 @@ export function AssignmentsTable({
   const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
   const goToNext = () =>
     setPage((current) => Math.min(totalPages, current + 1));
+
+  const handleAddToWorking = async (assignment: AdminAssignment) => {
+    setActionError("");
+
+    try {
+      await addAssignmentOnWorkingMutation.mutateAsync({
+        assignmentId: assignment.id,
+      });
+      playAddWorkingSound();
+      setPage(1);
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(mutationError, "Could not add assignment to working.")
+      );
+    }
+  };
+
+  const handleDeleteAssignment = async () => {
+    if (!assignmentToDelete) return;
+
+    setDeleteError("");
+
+    try {
+      await deleteAssignmentMutation.mutateAsync({
+        assignmentId: assignmentToDelete.id,
+      });
+      setPage(1);
+      setAssignmentToDelete(null);
+    } catch (mutationError) {
+      setDeleteError(
+        getApiErrorMessage(mutationError, "Could not delete assignment.")
+      );
+    }
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+        {getApiErrorMessage(error, "Could not load assignments.")}
+      </div>
+    );
+  }
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col pt-0">
@@ -178,6 +266,12 @@ export function AssignmentsTable({
           </CardDescription>
         </div>
       </CardHeader>
+
+      {actionError ? (
+        <p className="shrink-0 border-b px-4 py-2 text-sm font-medium text-[#f03063]">
+          {actionError}
+        </p>
+      ) : null}
 
       <div className="flex shrink-0 flex-wrap gap-2 border-b px-4 py-3">
         {statusTabs.map((tab) => {
@@ -255,13 +349,21 @@ export function AssignmentsTable({
                       size="icon-sm"
                       aria-label={`Add ${assignment.name} to working`}
                       className="text-muted-foreground hover:text-foreground"
+                      disabled={
+                        addAssignmentOnWorkingMutation.isPending &&
+                        addAssignmentOnWorkingMutation.variables
+                          ?.assignmentId === assignment.id
+                      }
                       onClick={(event) => {
                         event.stopPropagation();
-                        playAddWorkingSound();
-                        console.log("added to working");
+                        void handleAddToWorking(assignment);
                       }}
                     >
-                      <HugeiconsIcon icon={FolderAddIcon} size={16} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={FolderAddIcon}
+                        size={16}
+                        strokeWidth={1.75}
+                      />
                     </Button>
                     <Button
                       type="button"
@@ -271,7 +373,11 @@ export function AssignmentsTable({
                       className="text-muted-foreground hover:text-foreground"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <HugeiconsIcon icon={Edit02Icon} size={16} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={Edit02Icon}
+                        size={16}
+                        strokeWidth={1.75}
+                      />
                     </Button>
                     <Button
                       type="button"
@@ -284,7 +390,11 @@ export function AssignmentsTable({
                         setAssignmentToDelete(assignment);
                       }}
                     >
-                      <HugeiconsIcon icon={Delete02Icon} size={16} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={Delete02Icon}
+                        size={16}
+                        strokeWidth={1.75}
+                      />
                     </Button>
                   </div>
                 </TableCell>
@@ -296,8 +406,8 @@ export function AssignmentsTable({
 
       <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Showing {rangeStart}-{rangeEnd} of {filteredAssignments.length}{" "}
-          assignments
+          Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
+          {isFetchingNextPage ? " · Loading more..." : ""}
         </p>
 
         <Pagination className="mx-0 w-auto">
@@ -318,11 +428,12 @@ export function AssignmentsTable({
                 href="#"
                 text="Next"
                 className={cn(
-                  page === totalPages && "pointer-events-none opacity-50"
+                  (page === totalPages || isFetchingNextPage) &&
+                    "pointer-events-none opacity-50"
                 )}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (page < totalPages) goToNext();
+                  if (page < totalPages && !isFetchingNextPage) goToNext();
                 }}
               />
             </PaginationItem>
@@ -336,18 +447,19 @@ export function AssignmentsTable({
         title="Delete assignment"
         subtitle={
           assignmentToDelete
-            ? `Are you sure you want to delete ${assignmentToDelete.name}?`
+            ? deleteError ||
+              `Are you sure you want to delete ${assignmentToDelete.name}?`
             : ""
         }
         cancelLabel="Cancel"
-        confirmLabel="Delete"
-        onConfirm={() => {
-          if (assignmentToDelete) {
-            console.log("delete assignment", assignmentToDelete.name);
-          }
+        confirmLabel={
+          deleteAssignmentMutation.isPending ? "Deleting..." : "Delete"
+        }
+        onConfirm={handleDeleteAssignment}
+        onClose={() => {
+          setDeleteError("");
           setAssignmentToDelete(null);
         }}
-        onClose={() => setAssignmentToDelete(null)}
         ariaLabel="Confirm assignment delete"
       />
     </Card>

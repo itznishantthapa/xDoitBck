@@ -6,11 +6,12 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 
 import { AssignmentProgressTracker } from "@/components/admin/assignment-progress-tracker";
 import { Button } from "@/components/ui/button";
-import { getAssignmentProgress } from "@/mock/AssignmentProgressMocked";
+import { useAssignmentProgressQuery } from "@/hooks/query";
 import {
   getAssignmentDetailsBackHref,
   getAssignmentDetailsOrigin,
 } from "@/lib/routes";
+import { getApiErrorMessage } from "@/service/client";
 
 export default function AssignmentDetailsPage() {
   const router = useRouter();
@@ -20,7 +21,13 @@ export default function AssignmentDetailsPage() {
   const from = getAssignmentDetailsOrigin(searchParams.get("from"));
   const userId = searchParams.get("userId");
   const calendarDate = searchParams.get("date");
-  const response = getAssignmentProgress(assignmentId);
+
+  const {
+    data: progress,
+    isLoading,
+    isError,
+    error,
+  } = useAssignmentProgressQuery(assignmentId);
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 pt-1">
@@ -37,7 +44,15 @@ export default function AssignmentDetailsPage() {
         Back
       </Button>
 
-      <AssignmentProgressTracker progress={response.progress} />
+      {isError || !progress ? (
+        !isLoading ? (
+          <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+            {getApiErrorMessage(error, "Could not load assignment progress.")}
+          </div>
+        ) : null
+      ) : (
+        <AssignmentProgressTracker progress={progress} />
+      )}
     </div>
   );
 }

@@ -90,7 +90,7 @@ const assignmentProgressMock: AssignmentProgress = {
     provided: {
       date: "21 Jun 2026 10:50",
       is_active: true,
-      status: "pending",
+      status: "completed",
       provided_files: [
         "https://level-esport-matchmaking-bucket.blr1.cdn.digitaloceanspaces.com/doit-prod/assignments/attachments/Presentattion20Project201.pdf",
         "https://level-esport-matchmaking-bucket.blr1.cdn.digitaloceanspaces.com/doit-prod/assignments/attachments/IMG_3819.png",
@@ -101,16 +101,16 @@ const assignmentProgressMock: AssignmentProgress = {
     payment: {
       payment_receipt_date: null,
       payment_done_date: null,
-      is_active: false,
-      status: "pending",
+      is_active: true,
+      status: "doing",
       price: "120 AUD",
-      payment_details_image: null,
+      payment_details_image: "https://level-esport-matchmaking-bucket.blr1.cdn.digitaloceanspaces.com/doit-prod/assignments/attachments/IMG_3819.png",
       payment_screenshot: "https://level-esport-matchmaking-bucket.blr1.cdn.digitaloceanspaces.com/doit-prod/assignments/attachments/IMG_3819.png",
       is_max_submit_reached: false,
     },
     doing: {
       date: "23 Jun 2026 11:10",
-      is_active: false,
+      is_active: true,
       status: "doing",
     },
     completed: {

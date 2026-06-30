@@ -35,12 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { User } from "@/mock/UsersMocked";
+import type { AdminUser } from "@/api/userApi";
+import { useDeleteUserMutation, useInfiniteUsersQuery } from "@/hooks/query";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
 
 type UsersTableProps = {
-  users: User[];
   pageSize?: number;
 };
 
@@ -79,34 +80,55 @@ function formatCreatedAt(value: string) {
   });
 }
 
-export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
+export function UsersTable({ pageSize = 8 }: UsersTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+  const [deleteError, setDeleteError] = useState("");
 
-  const filteredUsers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return users;
+  const deleteUserMutation = useDeleteUserMutation();
 
-    return users.filter(
-      (user) =>
-        user.username.toLowerCase().includes(query) ||
-        user.role.toLowerCase().includes(query) ||
-        user.country.toLowerCase().includes(query)
-    );
-  }, [search, users]);
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteUsersQuery({ limit: pageSize });
 
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const allUsers = useMemo(
+    () => data?.pages.flatMap((usersPage) => usersPage.items) ?? [],
+    [data]
+  );
+
+  const totalCount = data?.pages[0]?.totalCount ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const paginatedUsers = useMemo(() => {
     const start = (page - 1) * pageSize;
-    return filteredUsers.slice(start, start + pageSize);
-  }, [filteredUsers, page, pageSize]);
+    return allUsers.slice(start, start + pageSize);
+  }, [allUsers, page, pageSize]);
 
   useEffect(() => {
-    setPage(1);
-  }, [search]);
+    const neededCount = page * pageSize;
+
+    if (
+      allUsers.length < neededCount &&
+      hasNextPage &&
+      !isFetchingNextPage
+    ) {
+      fetchNextPage();
+    }
+  }, [
+    allUsers.length,
+    page,
+    pageSize,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  ]);
 
   useEffect(() => {
     if (page > totalPages) {
@@ -114,14 +136,8 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
     }
   }, [page, totalPages]);
 
-  const rangeStart =
-    filteredUsers.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const rangeEnd = Math.min(page * pageSize, filteredUsers.length);
-
-  const handleSearchChange = (value: string) => {
-    console.log(value);
-    setSearch(value);
-  };
+  const rangeStart = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const rangeEnd = Math.min(page * pageSize, totalCount);
 
   const handleRowClick = (userId: string) => {
     router.push(routes.admin.userDetails(userId));
@@ -130,6 +146,34 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
   const goToPrevious = () => setPage((current) => Math.max(1, current - 1));
   const goToNext = () =>
     setPage((current) => Math.min(totalPages, current + 1));
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setDeleteError("");
+
+    try {
+      await deleteUserMutation.mutateAsync({ userId: userToDelete.id });
+      setPage(1);
+      setUserToDelete(null);
+    } catch (mutationError) {
+      setDeleteError(
+        getApiErrorMessage(mutationError, "Could not delete user.")
+      );
+    }
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex min-h-[320px] flex-1 items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+        {getApiErrorMessage(error, "Could not load users.")}
+      </div>
+    );
+  }
 
   return (
     <Card className="flex min-h-0 flex-1 flex-col pt-0">
@@ -150,10 +194,9 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
           />
           <Input
             type="text"
-            value={search}
-            placeholder="Search users"
+            disabled
+            placeholder="Search users (coming soon)"
             aria-label="Search users"
-            onChange={(event) => handleSearchChange(event.target.value)}
             className={cn(
               "h-10 rounded-xl border-0 bg-background pl-10 text-sm font-medium shadow-none ring-1 ring-foreground/10",
               "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
@@ -187,7 +230,7 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
                 </TableCell>
                 <TableCell className="text-muted-foreground">{user.role}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {user.country}
+                  {user.country || "—"}
                 </TableCell>
                 <TableCell>
                   <StatusBadge value={user.isActive} variant="active" />
@@ -196,7 +239,7 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
                   <StatusBadge value={user.isSuspended} variant="suspended" />
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {formatCreatedAt(user.createdAt)}
+                  {user.createdAt ? formatCreatedAt(user.createdAt) : "—"}
                 </TableCell>
                 <TableCell className="pr-4">
                   <div className="flex items-center justify-end gap-1">
@@ -233,7 +276,8 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
 
       <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Showing {rangeStart}-{rangeEnd} of {filteredUsers.length} users
+          Showing {rangeStart}-{rangeEnd} of {totalCount} users
+          {isFetchingNextPage ? " · Loading more..." : ""}
         </p>
 
         <Pagination className="mx-0 w-auto">
@@ -254,11 +298,12 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
                 href="#"
                 text="Next"
                 className={cn(
-                  page === totalPages && "pointer-events-none opacity-50"
+                  (page === totalPages || isFetchingNextPage) &&
+                    "pointer-events-none opacity-50"
                 )}
                 onClick={(event) => {
                   event.preventDefault();
-                  if (page < totalPages) goToNext();
+                  if (page < totalPages && !isFetchingNextPage) goToNext();
                 }}
               />
             </PaginationItem>
@@ -272,18 +317,17 @@ export function UsersTable({ users, pageSize = 8 }: UsersTableProps) {
         title="Delete user"
         subtitle={
           userToDelete
-            ? `Are you sure you want to delete ${userToDelete.username} ?`
+            ? deleteError ||
+              `Are you sure you want to delete ${userToDelete.username} ?`
             : ""
         }
         cancelLabel="Cancel"
-        confirmLabel="Delete"
-        onConfirm={() => {
-          if (userToDelete) {
-            console.log("delete user", userToDelete.username);
-          }
+        confirmLabel={deleteUserMutation.isPending ? "Deleting..." : "Delete"}
+        onConfirm={handleDeleteUser}
+        onClose={() => {
+          setDeleteError("");
           setUserToDelete(null);
         }}
-        onClose={() => setUserToDelete(null)}
         ariaLabel="Confirm user delete"
       />
     </Card>

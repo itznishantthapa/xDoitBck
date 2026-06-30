@@ -34,10 +34,17 @@ import type {
   AssignmentProgress,
   AssignmentProgressSteps,
   ProgressStepStatus,
-} from "@/mock/AssignmentProgressMocked";
+} from "@/api/assignmentProgressApi";
+import {
+  useAssignmentReceivedActionMutation,
+  useCompletedActionMutation,
+  useDoingActionMutation,
+  usePaymentActionMutation,
+} from "@/hooks/query";
 import { BORDER, GHOSTWHITE, TEXT_DARK, TEXT_MUTED, WHITE } from "@/lib/colors";
 import { downloadFilesAsZip, downloadSingleFile, toCompletedFileName, toZipFileName } from "@/lib/download-files";
 import { routes } from "@/lib/routes";
+import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
 
 type StepKey = keyof AssignmentProgressSteps;
@@ -404,10 +411,12 @@ function StepReviewActions({
   stepLabel,
   onApprove,
   onReject,
+  disabled = false,
 }: {
   stepLabel: string;
   onApprove: () => void;
   onReject: () => void;
+  disabled?: boolean;
 }) {
   const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(
     null
@@ -441,6 +450,7 @@ function StepReviewActions({
           variant="outline"
           size="icon-sm"
           aria-label={`Approve ${stepLabel}`}
+          disabled={disabled}
           className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
           style={{ backgroundColor: SUCCESS }}
           onClick={() => setPendingAction("approve")}
@@ -457,6 +467,7 @@ function StepReviewActions({
           variant="outline"
           size="icon-sm"
           aria-label={`Reject ${stepLabel}`}
+          disabled={disabled}
           className="size-9 rounded-full border-0 shadow-none hover:opacity-90"
           style={{ backgroundColor: REJECT }}
           onClick={() => setPendingAction("reject")}
@@ -606,6 +617,12 @@ function ProgressStepCard({
   );
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
+  useEffect(() => {
+    if (stepKey === "payment") {
+      setPaymentPrice(parsePriceValue(steps.payment.price));
+    }
+  }, [stepKey, steps.payment.price]);
+
   const theme = stepThemes[stepKey];
   const content = stepContent[stepKey];
   const reached = isStepReached(stepKey, steps);
@@ -614,8 +631,11 @@ function ProgressStepCard({
   const date = getStepDate(stepKey, steps);
   const accentColor = isDisabled ? TEXT_MUTED : theme.accent;
   const paymentScreenshot = steps.payment.payment_screenshot?.trim() ?? "";
+  const paymentDetailsImage = steps.payment.payment_details_image?.trim() ?? "";
   const showPaymentActiveFields =
     stepKey === "payment" && isActive && reached;
+  const isWaitingForUserPayment =
+    Boolean(paymentDetailsImage) && !paymentScreenshot;
 
   const description =
     stepKey === "doing"
@@ -633,11 +653,13 @@ function ProgressStepCard({
     steps.completed.changes_request_description?.trim() ?? "";
   const assignmentDescription =
     steps.provided.assignment_description?.trim() ?? "";
-  const showCompletedHeaderActions =
+  const showCompletedDownloadActions =
     !isDisabled &&
     stepKey === "completed" &&
     reached &&
-    Boolean(completedFileUrl && changesRequestDescription);
+    Boolean(completedFileUrl);
+  const showCompletedChangeRequestAction =
+    showCompletedDownloadActions && Boolean(changesRequestDescription);
   const showProvidedHeaderActions =
     !isDisabled && stepKey === "provided" && Boolean(assignmentDescription);
 
@@ -700,12 +722,12 @@ function ProgressStepCard({
             {showProvidedHeaderActions ? (
               <ProvidedStepHeaderActions description={assignmentDescription} />
             ) : null}
-            {showCompletedHeaderActions ? (
+            {showCompletedDownloadActions ? (
               <CompletedStepHeaderActions
-                assignmentId={assignmentId}
                 assignmentTitle={assignmentTitle}
                 completedFileUrl={completedFileUrl}
                 changesRequestDescription={changesRequestDescription}
+                showChangeRequestAction={showCompletedChangeRequestAction}
               />
             ) : null}
           </div>
@@ -729,7 +751,8 @@ function ProgressStepCard({
               paymentFile={paymentFile}
               onPaymentFileChange={setPaymentFile}
               fileInputRef={paymentFileInputRef}
-              hasReceipt={Boolean(paymentScreenshot)}
+              hasUserReceipt={Boolean(paymentScreenshot)}
+              paymentDetailsImage={paymentDetailsImage || null}
             />
           ) : null}
         </div>
@@ -752,6 +775,7 @@ function ProgressStepCard({
           <PaymentStepFooterActions
             assignmentId={assignmentId}
             paymentScreenshot={steps.payment.payment_screenshot}
+            isWaitingForUser={isWaitingForUserPayment}
             stepStatus={steps.payment.status}
             accent={theme.accent}
             price={paymentPrice}
@@ -764,7 +788,10 @@ function ProgressStepCard({
         </StepCardFooter>
       ) : stepKey === "completed" && reached ? (
         <StepCardFooter>
-          <CompletedStepActions assignmentId={assignmentId} />
+          <CompletedStepActions
+            assignmentId={assignmentId}
+            hasExistingFile={Boolean(completedFileUrl)}
+          />
         </StepCardFooter>
       ) : null}
     </div>
@@ -783,7 +810,8 @@ function PaymentStepFields({
   paymentFile,
   onPaymentFileChange,
   fileInputRef,
-  hasReceipt,
+  hasUserReceipt,
+  paymentDetailsImage = null,
 }: {
   assignmentId: string;
   accent: string;
@@ -792,8 +820,14 @@ function PaymentStepFields({
   paymentFile: File | null;
   onPaymentFileChange: (file: File | null) => void;
   fileInputRef: RefObject<HTMLInputElement | null>;
-  hasReceipt: boolean;
+  hasUserReceipt: boolean;
+  paymentDetailsImage?: string | null;
 }) {
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const showViewDetails = Boolean(paymentDetailsImage);
+  const showUpload = !showViewDetails && !hasUserReceipt;
+  const isPriceReadOnly = showViewDetails || hasUserReceipt;
+
   return (
     <div className="mt-2 flex flex-col gap-3">
       <div className="flex flex-col gap-1">
@@ -805,11 +839,11 @@ function PaymentStepFields({
           maxLength={4}
           placeholder="0000"
           value={price}
-          readOnly={hasReceipt}
+          readOnly={isPriceReadOnly}
           onChange={(event) => onPriceChange(sanitizePriceInput(event.target.value))}
           className={cn(
             "w-24 border-0 border-b-2 bg-transparent px-0 py-0.5 text-[2rem] font-bold leading-none tabular-nums tracking-tight outline-none placeholder:font-bold placeholder:opacity-35",
-            hasReceipt && "cursor-default"
+            isPriceReadOnly && "cursor-default"
           )}
           style={{ borderColor: accent, color: accent }}
           aria-label="Assignment price in AUD"
@@ -819,7 +853,36 @@ function PaymentStepFields({
         </span>
       </div>
 
-      {!hasReceipt ? (
+      {showViewDetails ? (
+        <>
+          <button
+            type="button"
+            title="View payment details"
+            onClick={() => setIsDetailsOpen(true)}
+            className="mb-3 flex h-9 w-full min-w-0 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-border bg-white/90 px-3 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white hover:text-foreground"
+          >
+            <HugeiconsIcon
+              icon={EyeIcon}
+              size={15}
+              strokeWidth={1.75}
+              className="shrink-0"
+            />
+            <span className="min-w-0 flex-1 truncate text-center text-[11px] font-medium leading-tight">
+              View Details
+            </span>
+          </button>
+
+          <PaymentImageModal
+            open={isDetailsOpen}
+            imageUrl={paymentDetailsImage!}
+            title="Payment Details"
+            ariaLabel="Payment details"
+            onClose={() => setIsDetailsOpen(false)}
+          />
+        </>
+      ) : null}
+
+      {showUpload ? (
         <>
           <input
             ref={fileInputRef}
@@ -836,7 +899,7 @@ function PaymentStepFields({
             type="button"
             title={paymentFile?.name ?? "Upload payment receipt"}
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-9 w-full min-w-0 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-border bg-white/90 px-3 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white hover:text-foreground mb-3"
+            className="mb-3 flex h-9 w-full min-w-0 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg border border-dashed border-border bg-white/90 px-3 text-muted-foreground transition-colors hover:border-foreground/20 hover:bg-white hover:text-foreground"
           >
             <HugeiconsIcon
               icon={Upload04Icon}
@@ -868,6 +931,8 @@ function ProvidedStepActions({
   accent: string;
 }) {
   const [isZipping, setIsZipping] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const receivedActionMutation = useAssignmentReceivedActionMutation();
   const hasFiles = providedFiles.length > 0;
   const showReviewActions = isStepPendingReview(stepStatus);
 
@@ -876,7 +941,6 @@ function ProvidedStepActions({
 
     try {
       await downloadFilesAsZip(providedFiles, toZipFileName(assignmentTitle));
-      console.log("download submitted assignment files", assignmentId, providedFiles);
     } catch (error) {
       console.error("Zipping stream failure:", error);
     } finally {
@@ -884,37 +948,51 @@ function ProvidedStepActions({
     }
   };
 
-  return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <StepPrimaryButton
-        accent={accent}
-        className={showReviewActions ? "min-w-0 flex-1" : "w-full"}
-        disabled={!hasFiles || isZipping}
-        title={isZipping ? "Zipping..." : "Download"}
-        onClick={handleZipDownload}
-      >
-        <HugeiconsIcon
-          icon={Download04Icon}
-          size={15}
-          strokeWidth={1.75}
-          className="shrink-0"
-        />
-        <span className="truncate">
-          {isZipping ? "Zipping..." : "Download"}
-        </span>
-      </StepPrimaryButton>
+  const handleReceivedAction = async (action: "approve" | "reject") => {
+    setActionError("");
 
-      {showReviewActions ? (
-        <StepReviewActions
-          stepLabel="assignment received"
-          onApprove={() =>
-            console.log("assignment received approved", assignmentId)
-          }
-          onReject={() =>
-            console.log("assignment received rejected", assignmentId)
-          }
-        />
+    try {
+      await receivedActionMutation.mutateAsync({ assignmentId, action });
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(mutationError, "Could not update assignment received step.")
+      );
+    }
+  };
+
+  return (
+    <div className="flex w-full min-w-0 flex-col gap-2">
+      {actionError ? (
+        <p className="text-[11px] font-medium text-[#f03063]">{actionError}</p>
       ) : null}
+      <div className="flex w-full min-w-0 items-center gap-2">
+        <StepPrimaryButton
+          accent={accent}
+          className={showReviewActions ? "min-w-0 flex-1" : "w-full"}
+          disabled={!hasFiles || isZipping}
+          title={isZipping ? "Zipping..." : "Download"}
+          onClick={handleZipDownload}
+        >
+          <HugeiconsIcon
+            icon={Download04Icon}
+            size={15}
+            strokeWidth={1.75}
+            className="shrink-0"
+          />
+          <span className="truncate">
+            {isZipping ? "Zipping..." : "Download"}
+          </span>
+        </StepPrimaryButton>
+
+        {showReviewActions ? (
+          <StepReviewActions
+            stepLabel="assignment received"
+            disabled={receivedActionMutation.isPending}
+            onApprove={() => void handleReceivedAction("approve")}
+            onReject={() => void handleReceivedAction("reject")}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -953,15 +1031,15 @@ function ProvidedStepHeaderActions({
 }
 
 function CompletedStepHeaderActions({
-  assignmentId,
   assignmentTitle,
   completedFileUrl,
   changesRequestDescription,
+  showChangeRequestAction,
 }: {
-  assignmentId: string;
   assignmentTitle: string;
   completedFileUrl: string;
   changesRequestDescription: string;
+  showChangeRequestAction: boolean;
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isChangeRequestOpen, setIsChangeRequestOpen] = useState(false);
@@ -974,7 +1052,6 @@ function CompletedStepHeaderActions({
         completedFileUrl,
         toCompletedFileName(assignmentTitle, completedFileUrl)
       );
-      console.log("download completed assignment", assignmentId, completedFileUrl);
     } catch (error) {
       console.error("Completed file download failure:", error);
     } finally {
@@ -993,22 +1070,26 @@ function CompletedStepHeaderActions({
         >
           <HugeiconsIcon icon={Download04Icon} size={13} strokeWidth={1.75} />
         </StepHeaderIconButton>
-        <StepHeaderIconButton
-          ariaLabel="View change request"
-          className="text-foreground"
-          onClick={() => setIsChangeRequestOpen(true)}
-        >
-          <HugeiconsIcon icon={Layers01Icon} size={13} strokeWidth={1.75} />
-        </StepHeaderIconButton>
+        {showChangeRequestAction ? (
+          <StepHeaderIconButton
+            ariaLabel="View change request"
+            className="text-foreground"
+            onClick={() => setIsChangeRequestOpen(true)}
+          >
+            <HugeiconsIcon icon={Layers01Icon} size={13} strokeWidth={1.75} />
+          </StepHeaderIconButton>
+        ) : null}
       </div>
 
-      <DescriptionTextModal
-        open={isChangeRequestOpen}
-        title="Change Request"
-        ariaLabel="Change request"
-        description={changesRequestDescription}
-        onClose={() => setIsChangeRequestOpen(false)}
-      />
+      {showChangeRequestAction ? (
+        <DescriptionTextModal
+          open={isChangeRequestOpen}
+          title="Change Request"
+          ariaLabel="Change request"
+          description={changesRequestDescription}
+          onClose={() => setIsChangeRequestOpen(false)}
+        />
+      ) : null}
     </>
   );
 }
@@ -1083,81 +1164,145 @@ function DescriptionTextModal({
 }
 
 function DoingStepActions({ assignmentId }: { assignmentId: string }) {
-  return (
-    <StepReviewActions
-      stepLabel="doing"
-      onApprove={() => console.log("doing approved", assignmentId)}
-      onReject={() => console.log("doing rejected", assignmentId)}
-    />
-  );
-}
+  const [actionError, setActionError] = useState("");
+  const doingActionMutation = useDoingActionMutation();
 
-function CompletedStepActions({ assignmentId }: { assignmentId: string }) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [assignmentFile, setAssignmentFile] = useState<File | null>(null);
+  const handleDoingAction = async (action: "approve" | "reject") => {
+    setActionError("");
 
-  const handleSave = () => {
-    console.log("completed assignment saved", {
-      assignmentId,
-      assignmentFile: assignmentFile?.name ?? null,
-    });
+    try {
+      await doingActionMutation.mutateAsync({ assignmentId, action });
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(mutationError, "Could not update doing step.")
+      );
+    }
   };
 
   return (
-    <div className="flex w-full min-w-0 items-center gap-2">
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.target.files?.[0] ?? null;
-          setAssignmentFile(file);
-        }}
+    <div className="flex w-full min-w-0 flex-col items-end gap-2">
+      {actionError ? (
+        <p className="w-full text-right text-[11px] font-medium text-[#f03063]">
+          {actionError}
+        </p>
+      ) : null}
+      <StepReviewActions
+        stepLabel="doing"
+        disabled={doingActionMutation.isPending}
+        onApprove={() => void handleDoingAction("approve")}
+        onReject={() => void handleDoingAction("reject")}
       />
-
-      <StepSecondaryButton
-        className="min-w-0 flex-1 justify-start overflow-hidden px-3 whitespace-normal"
-        title={assignmentFile?.name ?? "Upload"}
-        onClick={() => fileInputRef.current?.click()}
-      >
-        <HugeiconsIcon
-          icon={Upload04Icon}
-          size={15}
-          strokeWidth={1.75}
-          className="shrink-0"
-        />
-        <span className="min-w-0 flex-1 truncate text-left">
-          {assignmentFile ? assignmentFile.name : "Upload"}
-        </span>
-      </StepSecondaryButton>
-
-      <StepPrimaryButton
-        accent={TEXT_DARK}
-        className="min-w-0 shrink-0 px-3 sm:px-4"
-        disabled={!assignmentFile}
-        title="Save"
-        onClick={handleSave}
-      >
-        <HugeiconsIcon
-          icon={FloppyDiskIcon}
-          size={15}
-          strokeWidth={1.75}
-          className="shrink-0"
-        />
-        <span className="truncate">Save</span>
-      </StepPrimaryButton>
     </div>
   );
 }
 
-function PaymentScreenshotModal({
+function CompletedStepActions({
+  assignmentId,
+  hasExistingFile,
+}: {
+  assignmentId: string;
+  hasExistingFile: boolean;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [assignmentFile, setAssignmentFile] = useState<File | null>(null);
+  const [actionError, setActionError] = useState("");
+  const completedActionMutation = useCompletedActionMutation();
+  const submitLabel = hasExistingFile ? "Update" : "Save";
+  const pendingLabel = hasExistingFile ? "Updating..." : "Saving...";
+
+  const handleSave = async () => {
+    if (!assignmentFile) return;
+
+    setActionError("");
+
+    try {
+      await completedActionMutation.mutateAsync({
+        assignmentId,
+        completedFile: assignmentFile,
+      });
+      setAssignmentFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(
+          mutationError,
+          hasExistingFile
+            ? "Could not update completed assignment."
+            : "Could not save completed assignment."
+        )
+      );
+    }
+  };
+
+  return (
+    <div className="flex w-full min-w-0 flex-col gap-2">
+      {actionError ? (
+        <p className="text-[11px] font-medium text-[#f03063]">{actionError}</p>
+      ) : null}
+      <div className="flex w-full min-w-0 items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0] ?? null;
+            setAssignmentFile(file);
+          }}
+        />
+
+        <StepSecondaryButton
+          className="min-w-0 flex-1 justify-start overflow-hidden px-3 whitespace-normal"
+          title={assignmentFile?.name ?? "Upload"}
+          disabled={completedActionMutation.isPending}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <HugeiconsIcon
+            icon={Upload04Icon}
+            size={15}
+            strokeWidth={1.75}
+            className="shrink-0"
+          />
+          <span className="min-w-0 flex-1 truncate text-left">
+            {assignmentFile ? assignmentFile.name : "Upload"}
+          </span>
+        </StepSecondaryButton>
+
+        <StepPrimaryButton
+          accent={TEXT_DARK}
+          className="min-w-0 shrink-0 px-3 sm:px-4"
+          disabled={!assignmentFile || completedActionMutation.isPending}
+          title={submitLabel}
+          onClick={() => void handleSave()}
+        >
+          <HugeiconsIcon
+            icon={FloppyDiskIcon}
+            size={15}
+            strokeWidth={1.75}
+            className="shrink-0"
+          />
+          <span className="truncate">
+            {completedActionMutation.isPending ? pendingLabel : submitLabel}
+          </span>
+        </StepPrimaryButton>
+      </div>
+    </div>
+  );
+}
+
+function PaymentImageModal({
   open,
   imageUrl,
   onClose,
+  title,
+  ariaLabel,
 }: {
   open: boolean;
   imageUrl: string;
   onClose: () => void;
+  title: string;
+  ariaLabel: string;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -1184,7 +1329,7 @@ function PaymentScreenshotModal({
       className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
       role="dialog"
       aria-modal="true"
-      aria-label="Payment screenshot"
+      aria-label={ariaLabel}
       onClick={onClose}
     >
       <div
@@ -1192,12 +1337,12 @@ function PaymentScreenshotModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
-          <h4 className="text-sm font-semibold text-foreground">Payment Screenshot</h4>
+          <h4 className="text-sm font-semibold text-foreground">{title}</h4>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
-            aria-label="Close payment screenshot"
+            aria-label={`Close ${title.toLowerCase()}`}
             className="size-8 rounded-lg text-muted-foreground"
             onClick={onClose}
           >
@@ -1209,7 +1354,7 @@ function PaymentScreenshotModal({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageUrl}
-            alt="Payment screenshot"
+            alt={title}
             className="mx-auto max-h-[70vh] w-full rounded-lg object-contain ring-1 ring-black/4"
           />
         </div>
@@ -1218,9 +1363,30 @@ function PaymentScreenshotModal({
   );
 }
 
+function PaymentScreenshotModal({
+  open,
+  imageUrl,
+  onClose,
+}: {
+  open: boolean;
+  imageUrl: string;
+  onClose: () => void;
+}) {
+  return (
+    <PaymentImageModal
+      open={open}
+      imageUrl={imageUrl}
+      title="Payment Screenshot"
+      ariaLabel="Payment screenshot"
+      onClose={onClose}
+    />
+  );
+}
+
 function PaymentStepFooterActions({
   assignmentId,
   paymentScreenshot,
+  isWaitingForUser,
   stepStatus,
   accent,
   price,
@@ -1228,25 +1394,60 @@ function PaymentStepFooterActions({
 }: {
   assignmentId: string;
   paymentScreenshot: string | null;
+  isWaitingForUser: boolean;
   stepStatus: ProgressStepStatus;
   accent: string;
   price: string;
   paymentFile: File | null;
 }) {
   const [isScreenshotOpen, setIsScreenshotOpen] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const paymentActionMutation = usePaymentActionMutation();
   const hasPaymentScreenshot = Boolean(paymentScreenshot?.trim());
   const showReviewActions = stepStatus === "doing";
 
-  const handleSend = () => {
-    console.log("payment details sent", {
-      assignmentId,
-      price: price.trim() ? `${price.trim()} AUD` : null,
-      paymentImage: paymentFile?.name ?? null,
-    });
+  const handleSend = async () => {
+    if (!price.trim() || !paymentFile) {
+      setActionError("Price and payment details image are required.");
+      return;
+    }
+
+    setActionError("");
+
+    try {
+      await paymentActionMutation.mutateAsync({
+        assignmentId,
+        action: "send",
+        price: price.trim(),
+        paymentDetailsImage: paymentFile,
+      });
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(mutationError, "Could not send payment details.")
+      );
+    }
+  };
+
+  const handlePaymentReview = async (action: "approve" | "reject") => {
+    setActionError("");
+
+    try {
+      await paymentActionMutation.mutateAsync({ assignmentId, action });
+    } catch (mutationError) {
+      setActionError(
+        getApiErrorMessage(mutationError, "Could not update payment step.")
+      );
+    }
   };
 
   return (
     <>
+      {actionError ? (
+        <p className="mb-2 w-full text-[11px] font-medium text-[#f03063]">
+          {actionError}
+        </p>
+      ) : null}
+
       {hasPaymentScreenshot ? (
         <div className="flex w-full min-w-0 items-center gap-2">
           <StepPrimaryButton
@@ -1267,8 +1468,9 @@ function PaymentStepFooterActions({
           {showReviewActions ? (
             <StepReviewActions
               stepLabel="payment"
-              onApprove={() => console.log("payment approved", assignmentId)}
-              onReject={() => console.log("payment rejected", assignmentId)}
+              disabled={paymentActionMutation.isPending}
+              onApprove={() => void handlePaymentReview("approve")}
+              onReject={() => void handlePaymentReview("reject")}
             />
           ) : null}
         </div>
@@ -1276,20 +1478,19 @@ function PaymentStepFooterActions({
         <div className="flex w-full min-w-0 items-center gap-2">
           <StepPrimaryButton
             accent={accent}
-            className={showReviewActions ? "min-w-0 flex-1" : "w-full"}
-            title="Send"
-            onClick={handleSend}
+            className="w-full"
+            title={isWaitingForUser ? "Waiting" : "Send"}
+            disabled={isWaitingForUser || paymentActionMutation.isPending}
+            onClick={() => void handleSend()}
           >
-            <span className="truncate">Send</span>
+            <span className="truncate">
+              {paymentActionMutation.isPending
+                ? "Sending..."
+                : isWaitingForUser
+                  ? "Waiting"
+                  : "Send"}
+            </span>
           </StepPrimaryButton>
-
-          {showReviewActions ? (
-            <StepReviewActions
-              stepLabel="payment"
-              onApprove={() => console.log("payment approved", assignmentId)}
-              onReject={() => console.log("payment rejected", assignmentId)}
-            />
-          ) : null}
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import type { CalendarDateMeta, MetaAssignment } from "@/mock/CalendarMocked";
+import type { CalendarDateMeta, MetaAssignment } from "@/api/calendarApi";
 
 export type CalendarAssignmentKind = "delivery" | "delivered";
 
@@ -13,7 +13,8 @@ export function mergeDateMeta(
     if (!existing) {
       map.set(entry.date, {
         ...entry,
-        metaAssignments: [...entry.metaAssignments],
+        deliveryAssignments: [...entry.deliveryAssignments],
+        deliveredAssignments: [...entry.deliveredAssignments],
       });
       continue;
     }
@@ -22,9 +23,13 @@ export function mergeDateMeta(
       date: entry.date,
       isDelivery: existing.isDelivery || entry.isDelivery,
       isDelivered: existing.isDelivered || entry.isDelivered,
-      metaAssignments: [
-        ...existing.metaAssignments,
-        ...entry.metaAssignments,
+      deliveryAssignments: [
+        ...existing.deliveryAssignments,
+        ...entry.deliveryAssignments,
+      ],
+      deliveredAssignments: [
+        ...existing.deliveredAssignments,
+        ...entry.deliveredAssignments,
       ],
     });
   }
@@ -40,8 +45,10 @@ export function getCalendarAssignmentsForDate(
   const meta = mergeDateMeta(entries).get(date);
 
   if (!meta) return [];
-  if (kind === "delivery" && !meta.isDelivery) return [];
-  if (kind === "delivered" && !meta.isDelivered) return [];
 
-  return meta.metaAssignments;
+  if (kind === "delivery") {
+    return meta.deliveryAssignments;
+  }
+
+  return meta.deliveredAssignments;
 }

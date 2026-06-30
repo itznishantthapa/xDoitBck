@@ -1,93 +1,115 @@
+"use client";
+
 import { AssignmentCompletionAreaChart } from "@/components/admin/assignment-completion-area-chart";
 import { AssignmentPieChart } from "@/components/admin/assignment-pie-chart";
 import { DashboardToolbar } from "@/components/admin/dashboard-toolbar";
-import { StatsCard, type StatsCardPlatformBreakdown, type StatsCardTrend } from "@/components/admin/stats-card";
-import { dashboardResponse } from "@/mock/DashboardMocked";
-
-const { stats, assignmentBreakdown, assignmentCompletion } = dashboardResponse;
-
-const statCards: {
-  id: string;
-  title: string;
-  value: number;
-  trend: StatsCardTrend;
-  platformBreakdown?: StatsCardPlatformBreakdown;
-}[] = [
-  {
-    id: "users",
-    title: "Users",
-    value: stats.users.total,
-    trend: formatTrend(stats.users.growthPercentage),
-    platformBreakdown: {
-      iosUsers: stats.users.iosUsers,
-      androidUsers: stats.users.androidUsers,
-    },
-  },
-  {
-    id: "assignments",
-    title: "Assignment",
-    value: stats.assignments.total,
-    trend: formatTrend(stats.assignments.growthPercentage),
-  },
-  {
-    id: "revenue",
-    title: "Revenue",
-    value: stats.revenue.total,
-    trend: formatTrend(stats.revenue.growthPercentage),
-  },
-  {
-    id: "deliveries",
-    title: "Deliveries",
-    value: stats.deliveries.total,
-    trend: formatTrend(stats.deliveries.growthPercentage),
-  },
-  {
-    id: "working",
-    title: "Working",
-    value: stats.working.total,
-    trend: {
-      value: "",
-      direction: "up",
-      label: "currently added",
-      icon: "added",
-    },
-  },
-  {
-    id: "payment",
-    title: "Payment",
-    value: stats.pendingPayments.total,
-    trend: {
-      value: "",
-      direction: "up",
-      label: "verification needed",
-      icon: "verification",
-    },
-  },
-];
-
-const assignmentsPie = {
-  title: "Assignment Breakdown",
-  description: assignmentBreakdown.period,
-  footerTrend: `Trending up by ${assignmentBreakdown.growthPercentage}% this month`,
-  footerNote: "Showing assignment status for the last 6 months",
-  data: assignmentBreakdown.statuses.map((item) => ({
-    status: item.status.toLowerCase() as
-      | "pending"
-      | "review"
-      | "completed"
-      | "doing"
-      | "rejected",
-    count: item.count,
-  })),
-};
-
-const assignmentCompletionChart = {
-  title: "Assignment Completion",
-  description: "Completed vs rejected assignments of last 30 days",
-  series: assignmentCompletion.series,
-};
+import {
+  StatsCard,
+  type StatsCardPlatformBreakdown,
+  type StatsCardTrend,
+} from "@/components/admin/stats-card";
+import { useDashboardQuery, useBadgeNumbersQuery } from "@/hooks/query";
+import { getApiErrorMessage } from "@/service/client";
 
 export default function DashboardPage() {
+  const { data, isLoading, isError, error } = useDashboardQuery();
+  useBadgeNumbersQuery();
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (isError || !data) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center px-4 pt-10 text-sm font-medium text-[#f03063]">
+        {getApiErrorMessage(error, "Could not load dashboard data.")}
+      </div>
+    );
+  }
+
+  const { stats, assignmentBreakdown, assignmentCompletion } = data;
+
+  const statCards: {
+    id: string;
+    title: string;
+    value: number;
+    trend: StatsCardTrend;
+    platformBreakdown?: StatsCardPlatformBreakdown;
+  }[] = [
+    {
+      id: "users",
+      title: "Users",
+      value: stats.users.total,
+      trend: formatTrend(stats.users.growthPercentage),
+      platformBreakdown: {
+        iosUsers: stats.users.iosUsers,
+        androidUsers: stats.users.androidUsers,
+      },
+    },
+    {
+      id: "assignments",
+      title: "Assignment",
+      value: stats.assignments.total,
+      trend: formatTrend(stats.assignments.growthPercentage),
+    },
+    {
+      id: "revenue",
+      title: "Revenue",
+      value: stats.revenue.total,
+      trend: formatTrend(stats.revenue.growthPercentage),
+    },
+    {
+      id: "deliveries",
+      title: "Deliveries",
+      value: stats.deliveries.total,
+      trend: formatTrend(stats.deliveries.growthPercentage),
+    },
+    {
+      id: "working",
+      title: "Working",
+      value: stats.working.total,
+      trend: {
+        value: "",
+        direction: "up",
+        label: "currently added",
+        icon: "added",
+      },
+    },
+    {
+      id: "payment",
+      title: "Payment",
+      value: stats.pendingPayments.total,
+      trend: {
+        value: "",
+        direction: "up",
+        label: "verification needed",
+        icon: "verification",
+      },
+    },
+  ];
+
+  const assignmentsPie = {
+    title: "Assignment Breakdown",
+    description: assignmentBreakdown.period,
+    footerTrend: `Trending up by ${assignmentBreakdown.growthPercentage}% this month`,
+    footerNote: "Showing assignment status for the last 6 months",
+    data: assignmentBreakdown.statuses.map((item) => ({
+      status: item.status.toLowerCase() as
+        | "pending"
+        | "review"
+        | "completed"
+        | "doing"
+        | "rejected",
+      count: item.count,
+    })),
+  };
+
+  const assignmentCompletionChart = {
+    title: "Assignment Completion",
+    description: "Completed vs rejected assignments of last 30 days",
+    series: assignmentCompletion.series,
+  };
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-5 pt-4 lg:h-full lg:min-h-0 lg:pt-6">
       <DashboardToolbar />

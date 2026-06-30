@@ -19,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { CalendarDateMeta, MetaAssignment } from "@/mock/CalendarMocked";
+import type { CalendarDateMeta, MetaAssignment } from "@/api/calendarApi";
 import {
   getCalendarAssignmentsForDate,
   type CalendarAssignmentKind,

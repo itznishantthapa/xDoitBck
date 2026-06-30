@@ -1,23 +1,18 @@
 import Cookies from "js-cookie";
 import { create } from "zustand";
 
-interface UserProfile {
+export interface UserProfile {
   id: string;
   name: string;
-  email: string;
-  role: string;
-}
-
-interface LoginPayload {
   username: string;
-  password: string;
+  role: string;
 }
 
 interface AuthState {
   user: UserProfile | null;
   accessToken: string | null;
-  login: (payload: LoginPayload) => Promise<UserProfile>;
-  logout: () => void;
+  setAuth: (user: UserProfile, accessToken: string) => void;
+  clearAuth: () => void;
 }
 
 function readStoredUser(): UserProfile | null {
@@ -43,41 +38,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken:
     typeof window !== "undefined" ? Cookies.get("auth_token") || null : null,
 
-
-  login: async (payload) => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const mockApiResponse = {
-        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mockTokenString...",
-        user: {
-          id: "usr_9921",
-          name: payload.username,
-          email: `${payload.username}@doit.app`,
-          role: "admin",
-        },
-      };
-
-      const { accessToken, user } = mockApiResponse;
-
-      Cookies.set("auth_token", accessToken, {
-        expires: 7,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
-
-      localStorage.setItem("doit_user", JSON.stringify(user));
-
-      set({ user, accessToken });
-      return user;
-    } catch (error) {
-      throw error;
-    }
+  setAuth: (user, accessToken) => {
+    set({ user, accessToken });
   },
 
-  logout: () => {
-    Cookies.remove("auth_token");
-    localStorage.removeItem("doit_user");
+  clearAuth: () => {
     set({ user: null, accessToken: null });
   },
 }));

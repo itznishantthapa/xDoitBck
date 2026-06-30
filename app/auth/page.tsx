@@ -13,14 +13,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useLoginMutation } from "@/hooks/query";
 import { BG_SIDEBAR, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
-import { useAuthStore } from "@/lib/store";
+import { getApiErrorMessage } from "@/service/client";
 
 const SUCCESS = "#08d203";
 const REJECT = "#f03063";
-
 
 const inputClassName = cn(
   "h-11 rounded-xl border-0 bg-background text-sm font-medium shadow-none ring-1 ring-foreground/10",
@@ -29,11 +29,10 @@ const inputClassName = cn(
 
 export default function AuthPage() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const loginMutation = useLoginMutation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [usernameError, setUsernameError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -55,18 +54,16 @@ export default function AuthPage() {
     }
 
     try {
-      setIsLoading(true);
-      await login({ username: trimmedUsername, password: trimmedPassword });
+      await loginMutation.mutateAsync({
+        username: trimmedUsername,
+        password: trimmedPassword,
+      });
       router.replace(routes.admin.dashboard);
-
-      
-      // Promise for 3 seconds to simulate loading
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      setIsLoading(false);
     } catch (err) {
       console.error("Login attempt failed:", err);
-      setSubmitError("Could not sign in. Please try again.");
-      setIsLoading(false);
+      setSubmitError(
+        getApiErrorMessage(err, "Could not sign in. Please try again.")
+      );
     }
   };
 
@@ -174,11 +171,11 @@ export default function AuthPage() {
 
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={loginMutation.isPending}
             className="h-11 w-full rounded-lg text-sm font-semibold tracking-tight text-white shadow-none hover:opacity-90 disabled:opacity-70"
             style={{ backgroundColor: BG_SIDEBAR }}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {loginMutation.isPending ? "Signing in..." : "Sign in"}
           </Button>
         </form>
       </CardContent>
