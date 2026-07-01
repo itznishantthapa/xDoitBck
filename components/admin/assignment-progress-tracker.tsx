@@ -173,7 +173,18 @@ function getDoingDescription(steps: AssignmentProgressSteps) {
     return "Your helper has completed your assignment.";
   }
 
+  if (steps.doing.status === "pending" && steps.doing.is_active) {
+    return "Review helper progress and approve or reject.";
+  }
+
   return "Waiting for helper to start working on your assignment.";
+}
+
+function isDoingStepReadyForReview(steps: AssignmentProgressSteps) {
+  return (
+    steps.doing.is_active &&
+    (steps.doing.status === "pending" || steps.doing.status === "doing")
+  );
 }
 
 function getPaymentDescription(steps: AssignmentProgressSteps, isActive: boolean) {
@@ -790,7 +801,7 @@ function ProgressStepCard({
             paymentFile={paymentFile}
           />
         </StepCardFooter>
-      ) : stepKey === "doing" && reached && steps.doing.status === "doing" ? (
+      ) : stepKey === "doing" && reached && isDoingStepReadyForReview(steps) ? (
         <StepCardFooter className="justify-end">
           <DoingStepActions assignmentId={assignmentId} />
         </StepCardFooter>
