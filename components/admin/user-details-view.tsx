@@ -5,7 +5,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { AssignmentStatus } from "@/api/assignmentApi";
 import type { UserDetails } from "@/api/userApi";
 import {
   Card,
@@ -31,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useInfiniteUserAssignmentsQuery } from "@/hooks/query";
+import { getAssignmentStatusStyle } from "@/lib/assignment-status";
 import { adminTokens, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
@@ -38,47 +38,13 @@ import { cn } from "@/lib/utils";
 
 const SUCCESS = "#08d203";
 
-const statusStyles: Record<
-  AssignmentStatus,
-  { label: string; className: string }
-> = {
-  pending: {
-    label: "Pending",
-    className: "border-[#895ef6] text-[#895ef6]",
-  },
-  doing: {
-    label: "Doing",
-    className: "border-[#c9a208] text-[#9a7b0a]",
-  },
-  completed: {
-    label: "Completed",
-    className: "border-emerald-600 text-emerald-600",
-  },
-  rejected: {
-    label: "Rejected",
-    className: "border-[#f03063] text-[#f03063]",
-  },
-  payment_pending: {
-    label: "Payment Pending",
-    className: "border-[#895ef6] text-[#895ef6]",
-  },
-  payment_rejected: {
-    label: "Payment Rejected",
-    className: "border-[#f03063] text-[#f03063]",
-  },
-  unsubmitted: {
-    label: "Unsubmitted",
-    className: "border-orange-600 text-orange-600",
-  },
-};
-
 const statCards: {
   key: keyof UserDetails["user_stats"];
   title: string;
   accent: string;
 }[] = [
   { key: "totalGiven", title: "Total Given", accent: TEXT_DARK },
-  { key: "totalInReview", title: "Pending", accent: "#4da1f7" },
+  { key: "totalInReview", title: "In Review", accent: "#4da1f7" },
   { key: "totalDoing", title: "Doing", accent: "#c9780a" },
   { key: "totalCompleted", title: "Completed", accent: SUCCESS },
   { key: "totalRejected", title: "Rejected", accent: "#f03063" },
@@ -94,8 +60,8 @@ function formatDate(value: string | null) {
   });
 }
 
-function AssignmentStatusBadge({ status }: { status: AssignmentStatus }) {
-  const config = statusStyles[status];
+function AssignmentStatusBadge({ status }: { status: string }) {
+  const config = getAssignmentStatusStyle(status);
 
   return (
     <span

@@ -1,7 +1,10 @@
 "use client";
 
 import { AssignmentCompletionAreaChart } from "@/components/admin/assignment-completion-area-chart";
-import { AssignmentPieChart } from "@/components/admin/assignment-pie-chart";
+import {
+  AssignmentPieChart,
+  mapBreakdownStatus,
+} from "@/components/admin/assignment-pie-chart";
 import { DashboardToolbar } from "@/components/admin/dashboard-toolbar";
 import {
   StatsCard,
@@ -93,15 +96,14 @@ export default function DashboardPage() {
     description: assignmentBreakdown.period,
     footerTrend: `Trending up by ${assignmentBreakdown.growthPercentage}% this month`,
     footerNote: "Showing assignment status for the last 6 months",
-    data: assignmentBreakdown.statuses.map((item) => ({
-      status: item.status.toLowerCase() as
-        | "pending"
-        | "review"
-        | "completed"
-        | "doing"
-        | "rejected",
-      count: item.count,
-    })),
+    data: assignmentBreakdown.statuses.flatMap((item) => {
+      const status = mapBreakdownStatus(item.status);
+      if (!status || item.count === 0) {
+        return [];
+      }
+
+      return [{ status, count: item.count }];
+    }),
   };
 
   const assignmentCompletionChart = {

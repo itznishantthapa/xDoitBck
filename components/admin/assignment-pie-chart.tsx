@@ -23,13 +23,13 @@ const chartConfig = {
   count: {
     label: "Assignments",
   },
-  pending: {
-    label: "Pending",
-    color: "#895ef6",
-  },
   review: {
-    label: "Review",
+    label: "In Review",
     color: "#4da1f7",
+  },
+  payment_pending: {
+    label: "Payment Pending",
+    color: "#895ef6",
   },
   completed: {
     label: "Completed",
@@ -45,6 +45,25 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+export type PieStatusKey = keyof Omit<typeof chartConfig, "count">;
+
+export function mapBreakdownStatus(status: string): PieStatusKey | null {
+  switch (status) {
+    case "Review":
+      return "review";
+    case "Payment Pending":
+      return "payment_pending";
+    case "Completed":
+      return "completed";
+    case "Doing":
+      return "doing";
+    case "Rejected":
+      return "rejected";
+    default:
+      return null;
+  }
+}
+
 type AssignmentPieChartProps = {
   data: {
     title: string;
@@ -52,7 +71,7 @@ type AssignmentPieChartProps = {
     footerTrend: string;
     footerNote: string;
     data: {
-      status: "pending" | "review" | "completed" | "doing" | "rejected";
+      status: PieStatusKey;
       count: number;
     }[];
   };

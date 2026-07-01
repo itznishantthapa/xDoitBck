@@ -188,7 +188,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   );
   const isDashboard = pathname === routes.admin.dashboard;
   const navBadges = {
-    assignments: badgeNumbers?.pendingAssignments ?? 0,
+    assignments: badgeNumbers?.inReviewAssignments ?? 0,
     working: badgeNumbers?.workingAssignments ?? 0,
   };
 

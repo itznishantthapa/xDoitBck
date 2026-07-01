@@ -2,7 +2,7 @@ import { API_CLIENT } from "@/service/client";
 import { endpoints } from "@/service/endpoint";
 
 export type AssignmentStatus =
-  | "pending"
+  | "in_review"
   | "rejected"
   | "payment_pending"
   | "payment_rejected"
@@ -11,7 +11,7 @@ export type AssignmentStatus =
   | "unsubmitted";
 
 export type AssignmentTabStatus =
-  | "pending"
+  | "in_review"
   | "doing"
   | "completed"
   | "changes"

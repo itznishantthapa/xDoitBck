@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 
 import type {
   AdminAssignment,
-  AssignmentStatus,
   AssignmentTabStatus,
 } from "@/api/assignmentApi";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
@@ -44,6 +43,7 @@ import {
   useDeleteAssignmentMutation,
   useInfiniteAssignmentsQuery,
 } from "@/hooks/query";
+import { getAssignmentStatusStyle } from "@/lib/assignment-status";
 import { routes } from "@/lib/routes";
 import { playAddWorkingSound } from "@/lib/play-sound";
 import { getApiErrorMessage } from "@/service/client";
@@ -58,7 +58,7 @@ const statusTabs: {
   label: string;
   className: string;
 }[] = [
-  { value: "pending", label: "Pending", className: "border-[#895ef6] text-[#895ef6]" },
+  { value: "in_review", label: "In Review", className: "border-[#895ef6] text-[#895ef6]" },
   { value: "doing", label: "Doing", className: "border-[#c9a208] text-[#9a7b0a]" },
   {
     value: "completed",
@@ -74,42 +74,8 @@ const statusTabs: {
   { value: "all", label: "All", className: "border-foreground text-foreground" },
 ];
 
-const statusStyles: Record<
-  AssignmentStatus,
-  { label: string; className: string }
-> = {
-  pending: {
-    label: "Pending",
-    className: "border-[#895ef6] text-[#895ef6]",
-  },
-  doing: {
-    label: "Doing",
-    className: "border-[#c9a208] text-[#9a7b0a]",
-  },
-  completed: {
-    label: "Completed",
-    className: "border-emerald-600 text-emerald-600",
-  },
-  rejected: {
-    label: "Rejected",
-    className: "border-[#f03063] text-[#f03063]",
-  },
-  payment_pending: {
-    label: "Payment Pending",
-    className: "border-[#895ef6] text-[#895ef6]",
-  },
-  payment_rejected: {
-    label: "Payment Rejected",
-    className: "border-[#f03063] text-[#f03063]",
-  },
-  unsubmitted: {
-    label: "Unsubmitted",
-    className: "border-orange-600 text-orange-600",
-  },
-};
-
-function AssignmentStatusBadge({ status }: { status: AssignmentStatus }) {
-  const config = statusStyles[status];
+function AssignmentStatusBadge({ status }: { status: string }) {
+  const config = getAssignmentStatusStyle(status);
 
   return (
     <span
@@ -152,7 +118,7 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] =
-    useState<AssignmentTabStatus>("pending");
+    useState<AssignmentTabStatus>("in_review");
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AdminAssignment | null>(null);
   const [deleteError, setDeleteError] = useState("");

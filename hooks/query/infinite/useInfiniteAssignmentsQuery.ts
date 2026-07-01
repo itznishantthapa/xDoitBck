@@ -13,7 +13,7 @@ type UseInfiniteAssignmentsQueryParams = {
 };
 
 export function useInfiniteAssignmentsQuery({
-  status = "pending",
+  status = "in_review",
   limit = 8,
   enabled = true,
 }: UseInfiniteAssignmentsQueryParams = {}) {

@@ -2,7 +2,7 @@
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-import type { AssignmentCompletionSeriesPoint } from "@/mock/DashboardMocked";
+import type { AssignmentCompletionSeriesPoint } from "@/api/dashboardApi";
 import {
   Card,
   CardContent,

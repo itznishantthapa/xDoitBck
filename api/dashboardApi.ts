@@ -12,7 +12,7 @@ export type DashboardUsersStat = DashboardStat & {
 };
 
 export type AssignmentBreakdownStatus = {
-  status: "Pending" | "Review" | "Completed" | "Doing" | "Rejected";
+  status: "Review" | "Payment Pending" | "Completed" | "Doing" | "Rejected";
   count: number;
   percentage: number;
 };
