@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   Edit02Icon,
   FolderAddIcon,
@@ -7,12 +8,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AndroidIcon, AppleIcon } from "@/components/icons/platform-icons";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { statsCardTokens } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 export type StatsCardTrendIcon = "added" | "verification" | "changes";
@@ -46,6 +42,8 @@ export type StatsCardProps = {
   value: number;
   trend: StatsCardTrend;
   platformBreakdown?: StatsCardPlatformBreakdown;
+  imageSrc?: string;
+  imageAlt?: string;
   className?: string;
 };
 
@@ -54,57 +52,77 @@ export function StatsCard({
   value,
   trend,
   platformBreakdown,
+  imageSrc,
+  imageAlt,
   className,
 }: StatsCardProps) {
   const isUp = trend.direction === "up";
+  const hasImage = Boolean(imageSrc);
 
   return (
-    <Card size="sm" className={cn("pt-0", className)}>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 border-b py-2">
-        <CardTitle className="text-base font-medium">{title}</CardTitle>
-        {platformBreakdown ? (
-          <div className="flex shrink-0 items-center gap-x-2.5">
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground sm:text-sm">
-              <AppleIcon className="size-3.5 sm:size-4" />
-              {platformBreakdown.iosUsers.toLocaleString()}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-[#3ddc84] sm:text-sm">
-              <AndroidIcon className="size-3.5 sm:size-4" />
-              {platformBreakdown.androidUsers.toLocaleString()}
-            </span>
-          </div>
-        ) : null}
-      </CardHeader>
+    <div className={cn(statsCardTokens.base, className)}>
+      <div
+        className={cn(
+          "relative z-10 flex min-w-0 flex-1 flex-col",
+          hasImage && "pr-14 sm:pr-16"
+        )}
+      >
+        <p className="text-[13px] font-medium leading-tight text-foreground">
+          {title}
+        </p>
 
-      <CardContent className="py-2">
-        <p className="text-2xl font-bold leading-none tracking-tight">
+        <p className="mt-1.5 text-[22px] font-semibold leading-none tracking-tight text-foreground sm:text-2xl">
           {value.toLocaleString()}
         </p>
 
-        <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-snug">
+        <p className="mt-2 flex min-w-0 flex-wrap items-center gap-1 text-[11px] leading-snug sm:text-xs">
           {trend.icon ? (
             <HugeiconsIcon
               icon={trendIconMap[trend.icon]}
-              size={14}
+              size={12}
               strokeWidth={2}
               className={cn("shrink-0", trendIconClassName[trend.icon])}
             />
           ) : null}
           {trend.value ? (
-            <>
-              <span
-                className={cn(
-                  "font-medium",
-                  isUp ? "text-emerald-600" : "text-orange-600"
-                )}
-              >
-                {trend.value}
-              </span>{" "}
-            </>
+            <span
+              className={cn(
+                "font-medium",
+                isUp ? "text-emerald-600" : "text-orange-600"
+              )}
+            >
+              {trend.value}
+            </span>
           ) : null}
           <span className="text-muted-foreground">{trend.label}</span>
         </p>
-      </CardContent>
-    </Card>
+
+        {platformBreakdown ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+            <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-foreground">
+              <AppleIcon className="size-3" />
+              {platformBreakdown.iosUsers.toLocaleString()}
+            </span>
+            <span className="inline-flex items-center gap-0.5 text-[11px] font-medium text-[#3ddc84]">
+              <AndroidIcon className="size-3" />
+              {platformBreakdown.androidUsers.toLocaleString()}
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      {imageSrc ? (
+        <div className={statsCardTokens.imageWrap} aria-hidden={!imageAlt}>
+          <Image
+            src={imageSrc}
+            alt={imageAlt ?? ""}
+            width={80}
+            height={80}
+            className={statsCardTokens.image}
+            priority={title === "Users"}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }

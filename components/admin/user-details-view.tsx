@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/table";
 import { useInfiniteUserAssignmentsQuery } from "@/hooks/query";
 import { getAssignmentStatusStyle } from "@/lib/assignment-status";
-import { adminTokens, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
+import { shopifyAdminCard, shopifyAdminCardFooter, TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
@@ -100,18 +100,14 @@ function UserStatItem({
   accent: string;
 }) {
   return (
-    <div className="px-4 py-3.5">
-      <p className="text-xs font-medium text-muted-foreground">{title}</p>
+    <div className="px-3 py-2.5">
+      <p className="text-[11px] font-medium text-muted-foreground">{title}</p>
       <p
-        className="mt-1 text-xl font-bold leading-none tracking-tight"
-        style={{ color: TEXT_DARK }}
+        className="mt-0.5 text-lg font-semibold leading-none tracking-tight"
+        style={{ color: accent }}
       >
         {value}
       </p>
-      <div
-        className="mt-2.5 h-0.5 w-7 rounded-full"
-        style={{ backgroundColor: accent }}
-      />
     </div>
   );
 }
@@ -187,9 +183,9 @@ function UserAssignmentsSection({
 
   if (isError) {
     return (
-      <Card className="flex min-h-[280px] flex-1 flex-col pt-0">
-        <CardHeader className="shrink-0 space-y-0 border-b py-4">
-          <CardTitle className="text-base">Assignments</CardTitle>
+      <Card className={cn("flex min-h-[280px] flex-1", shopifyAdminCard)}>
+        <CardHeader className="shrink-0 space-y-0 border-b py-3">
+          <CardTitle>Assignments</CardTitle>
           <CardDescription>
             Assignments submitted by this user
           </CardDescription>
@@ -202,9 +198,9 @@ function UserAssignmentsSection({
   }
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col pt-0">
-      <CardHeader className="shrink-0 space-y-0 border-b py-4">
-        <CardTitle className="text-base">Assignments</CardTitle>
+    <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+      <CardHeader className="shrink-0 space-y-0 border-b py-3">
+        <CardTitle>Assignments</CardTitle>
         <CardDescription>Assignments submitted by this user</CardDescription>
       </CardHeader>
 
@@ -259,7 +255,7 @@ function UserAssignmentsSection({
         </Table>
       </CardContent>
 
-      <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
+      <CardFooter className={shopifyAdminCardFooter}>
         <p className="text-xs text-muted-foreground">
           Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
           {isFetchingNextPage ? " · Loading more..." : ""}
@@ -302,25 +298,16 @@ function UserAssignmentsSection({
 export function UserDetailsView({ user }: { user: UserDetails }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <Card
-        className={cn(
-          "shrink-0 gap-0 overflow-hidden pt-0 shadow-none",
-          adminTokens.containerBorder
-        )}
-      >
-        <CardHeader className="space-y-0 border-b border-border/60 px-5 py-4">
+      <Card className={cn("shrink-0 gap-0", shopifyAdminCard)}>
+        <CardHeader className="space-y-0 border-b border-border/60 px-4 py-3">
           <CardTitle
-            className="text-2xl font-bold tracking-tight"
+            className="text-lg font-semibold tracking-tight"
             style={{ color: TEXT_DARK }}
           >
             {user.username}
           </CardTitle>
           <div
-            className="mt-2 h-0.5 w-32 rounded-full"
-            style={{ backgroundColor: SUCCESS }}
-          />
-          <div
-            className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium"
+            className="mt-1.5 inline-flex items-center gap-1.5 text-[13px]"
             style={{ color: TEXT_MUTED }}
           >
             <HugeiconsIcon

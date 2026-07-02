@@ -42,7 +42,15 @@ import {
   useDoingActionMutation,
   usePaymentActionMutation,
 } from "@/hooks/query";
-import { BORDER, GHOSTWHITE, TEXT_DARK, TEXT_MUTED, WHITE } from "@/lib/colors";
+import {
+  BORDER,
+  GHOSTWHITE,
+  shopifyAdminCard,
+  shopifyCardSurface,
+  TEXT_DARK,
+  TEXT_MUTED,
+  WHITE,
+} from "@/lib/colors";
 import { downloadFilesAsZip, downloadSingleFile, toCompletedFileName, toZipFileName } from "@/lib/download-files";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
@@ -210,24 +218,18 @@ export function AssignmentProgressTracker({
   const { steps } = progress;
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col overflow-hidden pt-0 shadow-none">
-      <CardHeader className="shrink-0 space-y-4 border-b border-border/60 px-5 py-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="grid gap-3">
-            <span className="inline-flex w-fit items-center rounded-t-md bg-[#895ef612] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#895ef6] ">
+    <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+      <CardHeader className="shrink-0 space-y-3 border-b border-border/60 px-4 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid gap-2">
+            <span className="inline-flex w-fit items-center rounded-md bg-[#895ef612] px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-[#895ef6]">
               {progress.work_type}
             </span>
-            <div className="grid gap-2.5">
-              <div className="grid gap-1.5">
-                <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-                  {progress.title}
-                </CardTitle>
-                <div
-                  className="h-0.5 w-12 rounded-full"
-                  style={{ backgroundColor: SUCCESS }}
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="grid gap-1">
+              <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
+                {progress.title}
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                 <button
                   type="button"
                   onClick={() =>
@@ -295,7 +297,7 @@ export function AssignmentProgressTracker({
         </div>
       </CardHeader>
 
-      <CardContent className="min-h-0 flex-1 overflow-x-auto bg-[#ffffff] px-5 py-6">
+      <CardContent className="min-h-0 flex-1 overflow-x-auto px-4 py-4">
         <div className="min-w-[920px]">
           <div className="grid grid-cols-4 items-stretch gap-4">
             {stepOrder.map((key, index) => {
@@ -547,7 +549,7 @@ function StepPrimaryButton({
     <Button
       type="button"
       className={cn(
-        "h-9 min-w-0 gap-1.5 overflow-hidden rounded-lg px-2.5 text-xs font-medium text-white shadow-none hover:opacity-90 sm:gap-2 sm:px-3 sm:text-sm",
+        "h-8 min-w-0 gap-1 overflow-hidden rounded-lg px-2 text-xs font-medium text-white shadow-none hover:opacity-90 sm:gap-1.5 sm:px-2.5",
         className
       )}
       style={{ backgroundColor: accent }}
@@ -568,7 +570,7 @@ function StepSecondaryButton({
       type="button"
       variant="outline"
       className={cn(
-        "h-9 min-w-0 gap-1.5 overflow-hidden rounded-lg border-border/80 bg-white px-2.5 text-xs font-medium text-foreground shadow-none hover:bg-muted/40 sm:gap-2 sm:px-3 sm:text-sm",
+        "h-8 min-w-0 gap-1 overflow-hidden rounded-lg border-border/80 bg-white px-2 text-xs font-medium text-foreground shadow-none hover:bg-muted/40 sm:gap-1.5 sm:px-2.5",
         className
       )}
       {...props}
@@ -685,16 +687,17 @@ function ProgressStepCard({
   return (
     <div
       className={cn(
-        "flex h-full min-h-[292px] min-w-0 flex-col overflow-hidden rounded-xl bg-white transition-all duration-200",
+        "flex h-full min-h-[292px] min-w-0 flex-col overflow-hidden transition-all duration-200",
+        shopifyCardSurface,
         isDisabled
-          ? "pointer-events-none select-none ring-border/90 shadow-[0_0_4px_rgba(0,0,0,0.10)]"
-          : cn("shadow-[0_0_4px_rgba(0,0,0,0.10)]", !reached && "opacity-65")
+          ? "pointer-events-none select-none opacity-60"
+          : !reached && "opacity-65"
       )}
     >
       <div
         className={cn(
           "flex flex-1 flex-col px-4 pt-4",
-          !isDisabled && "rounded-t-xl"
+          !isDisabled && "rounded-t-[20px]"
         )}
         style={{
           backgroundColor: isDisabled ? GHOSTWHITE : theme.surface,
@@ -861,7 +864,7 @@ function PaymentStepFields({
           readOnly={isPriceReadOnly}
           onChange={(event) => onPriceChange(sanitizePriceInput(event.target.value))}
           className={cn(
-            "w-24 border-0 border-b-2 bg-transparent px-0 py-0.5 text-[2rem] font-bold leading-none tabular-nums tracking-tight outline-none placeholder:font-bold placeholder:opacity-35",
+            "w-20 border-0 border-b bg-transparent px-0 py-0.5 text-xl font-semibold leading-none tabular-nums tracking-tight outline-none placeholder:font-semibold placeholder:opacity-35",
             isPriceReadOnly && "cursor-default"
           )}
           style={{ borderColor: accent, color: accent }}
@@ -1155,7 +1158,10 @@ function DescriptionTextModal({
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-lg cursor-default overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
+        className={cn(
+          "relative max-h-[90vh] w-full max-w-lg cursor-default overflow-hidden",
+          shopifyCardSurface
+        )}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">
@@ -1352,7 +1358,10 @@ function PaymentImageModal({
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-2xl cursor-default overflow-hidden rounded-xl bg-white shadow-2xl ring-1 ring-black/8"
+        className={cn(
+          "relative max-h-[90vh] w-full max-w-2xl cursor-default overflow-hidden",
+          shopifyCardSurface
+        )}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border/60 px-5 py-4">

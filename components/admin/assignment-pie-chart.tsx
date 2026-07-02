@@ -17,6 +17,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { shopifyAdminCard } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 const chartConfig = {
@@ -114,16 +115,16 @@ export function AssignmentPieChart({ data, className }: AssignmentPieChartProps)
   const total = chartData.reduce((sum, item) => sum + item.count, 0);
 
   return (
-    <Card className={cn("flex h-full min-h-0 flex-col pt-0", className)}>
-      <CardHeader className="shrink-0 space-y-0 border-b py-3">
+    <Card className={cn("h-full min-h-0", shopifyAdminCard, className)}>
+      <CardHeader className="shrink-0 space-y-0 border-b py-2.5">
         <div className="grid gap-0.5">
-          <CardTitle className="text-base">{data.title}</CardTitle>
+          <CardTitle>{data.title}</CardTitle>
           <CardDescription>{data.description}</CardDescription>
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 px-3 py-4">
-        <div className="flex min-h-[220px] flex-1 items-center justify-center">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 px-3 py-3">
+        <div className="flex min-h-[200px] flex-1 items-center justify-center">
           <ChartContainer
             config={chartConfig}
             className="mx-auto aspect-square w-full max-h-[260px] max-w-[260px] [&_.recharts-pie-label-line]:stroke-muted-foreground [&_.recharts-pie-label-text]:fill-foreground [&_.recharts-responsive-container]:size-full!"
@@ -147,7 +148,7 @@ export function AssignmentPieChart({ data, className }: AssignmentPieChartProps)
           </ChartContainer>
         </div>
 
-        <ul className="shrink-0 space-y-2.5 border-t pt-3">
+        <ul className="shrink-0 space-y-2 border-t pt-2.5">
           {chartData.map((item) => {
             const label =
               chartConfig[item.status as keyof typeof chartConfig]?.label ??
@@ -156,18 +157,18 @@ export function AssignmentPieChart({ data, className }: AssignmentPieChartProps)
               total > 0 ? ((item.count / total) * 100).toFixed(1) : "0";
 
             return (
-              <li key={item.status} className="flex items-center gap-2 text-sm">
+              <li key={item.status} className="flex items-center gap-2 text-[13px]">
                 <span
-                  className="size-2.5 shrink-0 rounded-full"
+                  className="size-2 shrink-0 rounded-full"
                   style={{ backgroundColor: item.fill }}
                 />
                 <span className="flex-1 capitalize text-muted-foreground">
                   {label}
                 </span>
-                <span className="font-semibold tabular-nums text-foreground">
+                <span className="font-medium tabular-nums text-foreground">
                   {item.count.toLocaleString()}
                 </span>
-                <span className="w-10 text-right text-xs tabular-nums text-muted-foreground">
+                <span className="w-9 text-right text-[11px] tabular-nums text-muted-foreground">
                   {share}%
                 </span>
               </li>
@@ -176,12 +177,12 @@ export function AssignmentPieChart({ data, className }: AssignmentPieChartProps)
         </ul>
       </CardContent>
 
-      <CardFooter className="shrink-0 flex-col items-start gap-1 border-t bg-muted/30 px-4 py-3 text-left">
-        <div className="flex items-center gap-1.5 text-xs font-medium leading-tight text-foreground">
+      <CardFooter className="shrink-0 flex-col items-start gap-0.5 border-t bg-muted/20 px-3 py-2.5 text-left">
+        <div className="flex items-center gap-1 text-[11px] font-medium leading-tight text-foreground">
           {data.footerTrend}
           <TrendingUp className="size-3.5 shrink-0" />
         </div>
-        <p className="text-xs leading-snug text-muted-foreground">
+        <p className="text-[11px] leading-snug text-muted-foreground">
           {data.footerNote}
         </p>
       </CardFooter>

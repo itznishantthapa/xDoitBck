@@ -5,7 +5,6 @@ import {
   AssignmentPieChart,
   mapBreakdownStatus,
 } from "@/components/admin/assignment-pie-chart";
-import { DashboardToolbar } from "@/components/admin/dashboard-toolbar";
 import {
   StatsCard,
   type StatsCardPlatformBreakdown,
@@ -38,12 +37,16 @@ export default function DashboardPage() {
     value: number;
     trend: StatsCardTrend;
     platformBreakdown?: StatsCardPlatformBreakdown;
+    imageSrc?: string;
+    imageAlt?: string;
   }[] = [
     {
       id: "users",
       title: "Users",
       value: stats.users.total,
       trend: formatTrend(stats.users.growthPercentage),
+      imageSrc: "/users.png",
+      imageAlt: "Users illustration",
       platformBreakdown: {
         iosUsers: stats.users.iosUsers,
         androidUsers: stats.users.androidUsers,
@@ -54,18 +57,24 @@ export default function DashboardPage() {
       title: "Assignment",
       value: stats.assignments.total,
       trend: formatTrend(stats.assignments.growthPercentage),
+      imageSrc: "/assignment.png",
+      imageAlt: "Assignment illustration",
     },
     {
       id: "revenue",
       title: "Revenue",
       value: stats.revenue.total,
       trend: formatTrend(stats.revenue.growthPercentage),
+      imageSrc: "/revenue.png",
+      imageAlt: "Revenue illustration",
     },
     {
       id: "deliveries",
       title: "Deliveries",
       value: stats.deliveries.total,
       trend: formatTrend(stats.deliveries.growthPercentage),
+      imageSrc: "/delivery.png",
+      imageAlt: "Delivery illustration",
     },
     {
       id: "changes",
@@ -77,6 +86,8 @@ export default function DashboardPage() {
         label: "request made",
         icon: "changes",
       },
+      imageSrc: "/change.png",
+      imageAlt: "Change illustration",
     },
     {
       id: "payment",
@@ -88,6 +99,8 @@ export default function DashboardPage() {
         label: "verification needed",
         icon: "verification",
       },
+      imageSrc: "/payment.png",
+      imageAlt: "Payment illustration",
     },
   ];
 
@@ -113,12 +126,10 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-5 pt-4 lg:h-full lg:min-h-0 lg:pt-6">
-      <DashboardToolbar />
-
-      <div className="flex flex-col gap-5 lg:min-h-0 lg:flex-1 lg:flex-row lg:items-stretch">
-        <div className="grid min-w-0 flex-1 gap-5 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="flex w-full min-w-0 flex-col gap-4 lg:h-full lg:min-h-0">
+      <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1 lg:flex-row lg:items-stretch">
+        <div className="grid min-w-0 flex-1 gap-4 lg:min-h-0 lg:grid-rows-[auto_minmax(0,1fr)]">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {statCards.map((stat) => (
               <StatsCard
                 key={stat.id}
@@ -126,6 +137,8 @@ export default function DashboardPage() {
                 value={stat.value}
                 trend={stat.trend}
                 platformBreakdown={stat.platformBreakdown}
+                imageSrc={stat.imageSrc}
+                imageAlt={stat.imageAlt}
               />
             ))}
           </div>
@@ -136,7 +149,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <aside className="flex w-full shrink-0 lg:min-h-0 lg:w-80 xl:w-88">
+        <aside className="flex w-full shrink-0 lg:min-h-0 lg:w-72 xl:w-80">
           <AssignmentPieChart
             data={assignmentsPie}
             className="min-h-[320px] w-full lg:h-full lg:min-h-0"

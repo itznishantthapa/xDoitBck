@@ -29,7 +29,7 @@ import {
   useMarkBusyDatesMutation,
 } from "@/hooks/query";
 import { mergeDateMeta } from "@/lib/calendar-utils";
-import { BG_SIDEBAR, BORDER, TEXT_DARK, WHITE } from "@/lib/colors";
+import { BG_SIDEBAR, BORDER, shopifyAdminCard, TEXT_DARK, WHITE } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
@@ -134,13 +134,13 @@ function MonthNavigator({
         type="button"
         aria-label="Previous month"
         onClick={onPrevious}
-        className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
+        className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
         style={{ backgroundColor: BG_SIDEBAR }}
       >
         <ChevronLeft className="size-5" strokeWidth={2} />
       </button>
       <span
-        className="min-w-36 text-center text-xl font-bold tracking-tight sm:min-w-40 sm:text-2xl"
+        className="min-w-32 text-center text-base font-semibold tracking-tight sm:min-w-36 sm:text-lg"
         style={{ color: TEXT_DARK }}
       >
         {format(currentMonth, "MMMM yyyy")}
@@ -149,7 +149,7 @@ function MonthNavigator({
         type="button"
         aria-label="Next month"
         onClick={onNext}
-        className="inline-flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
+        className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-opacity hover:opacity-80"
         style={{ backgroundColor: BG_SIDEBAR }}
       >
         <ChevronRight className="size-5" strokeWidth={2} />
@@ -249,7 +249,8 @@ export function AdminCalendar({ className }: AdminCalendarProps) {
     <Card
       size="sm"
       className={cn(
-        "flex min-h-0 w-full min-w-0 flex-1 flex-col gap-0 pt-0 lg:h-[calc(100svh-4.75rem)]",
+        "min-h-0 w-full min-w-0 flex-1 gap-0 lg:h-full",
+        shopifyAdminCard,
         className
       )}
     >

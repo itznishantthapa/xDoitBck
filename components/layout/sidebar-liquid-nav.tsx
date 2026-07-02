@@ -10,19 +10,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { BG_SIDEBAR, TEXT_DARK, WHITE } from "@/lib/colors";
+import { TEXT_MUTED, WHITE } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
-const ITEM_H = 56;
+const ITEM_H = 44;
 
 type NavOrientation = "vertical" | "horizontal";
 
-/** Single sliding pill — inset from the left so it does not touch the sidebar edge */
-const verticalLiquidPillClasses =
-  "absolute left-3 right-0 z-0 bg-white rounded-l-[36px] pointer-events-none " +
-  "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] " +
-  "before:content-[''] before:absolute before:w-6 before:h-6 before:bg-[var(--liquid-scoop-bg)] before:right-0 before:-top-6 before:rounded-br-[10px] before:shadow-[5px_5px_0_5px_var(--liquid-scoop-cutout)] " +
-  "after:content-[''] after:absolute after:w-6 after:h-6 after:bg-[var(--liquid-scoop-bg)] after:right-0 after:-bottom-6 after:rounded-tr-[10px] after:shadow-[5px_-5px_0_5px_var(--liquid-scoop-cutout)]";
+const verticalPillClasses =
+  "absolute inset-x-1.5 z-0 rounded-full bg-[#1A1A1A] pointer-events-none " +
+  "transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.25,1,0.5,1)]";
 
 type NavItem = {
   id: string;
@@ -31,7 +28,7 @@ type NavItem = {
   icon: string;
 };
 
-function SlidingLiquidPill({
+function SlidingPill({
   top,
   visible,
 }: {
@@ -41,13 +38,11 @@ function SlidingLiquidPill({
   return (
     <div
       aria-hidden
-      className={verticalLiquidPillClasses}
+      className={verticalPillClasses}
       style={{
         height: ITEM_H,
         transform: `translateY(${top}px)`,
         opacity: visible ? 1 : 0,
-        ["--liquid-scoop-bg" as string]: BG_SIDEBAR,
-        ["--liquid-scoop-cutout" as string]: WHITE,
       }}
     />
   );
@@ -87,29 +82,28 @@ function SidebarNavLink({
       className={cn(
         "group relative z-10 flex cursor-pointer select-none items-center justify-center outline-none transition-colors duration-200",
         isHorizontal
-          ? "h-12 min-w-0 flex-1 rounded-xl"
-          : "h-14 w-full",
-        isHorizontal && isActive && "bg-white",
-        isHorizontal && !isActive && "hover:bg-white/10"
+          ? "h-10 min-w-0 flex-1 rounded-full"
+          : "h-11 w-full rounded-full",
+        isHorizontal && isActive && "bg-[#1A1A1A]",
+        isHorizontal && !isActive && "hover:bg-black/4"
       )}
     >
       <span className="relative inline-flex items-center justify-center">
         <HugeiconsIcon
           icon={icon}
-          size={20}
-          color={isActive ? TEXT_DARK : WHITE}
+          size={18}
+          color={isActive ? WHITE : TEXT_MUTED}
           strokeWidth={isActive ? 2 : 1.75}
           className={cn(
-            "relative z-0 shrink-0 transition-all duration-300",
-            isActive && !isHorizontal && "scale-110",
-            !isActive && "group-hover:scale-105"
+            "relative z-0 shrink-0 transition-all duration-200",
+            !isActive && "group-hover:opacity-80"
           )}
         />
         {showBadge ? (
           <span
             aria-hidden
             className={cn(
-              "absolute -right-2.5 -top-2.5 z-20 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#895ef6] px-1 text-[10px] font-bold leading-none text-white shadow-[0_1px_3px_rgba(0,0,0,0.35)]",
+              "absolute -right-2 -top-2 z-20 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#895ef6] px-0.5 text-[9px] font-semibold leading-none text-white",
               isHorizontal && isActive && "ring-2 ring-white"
             )}
           >
@@ -225,18 +219,18 @@ export function SidebarAnimatedNav({
       ref={containerRef}
       className={cn(
         "relative flex w-full flex-col overflow-visible",
-        isHorizontal && "min-h-12",
+        isHorizontal && "min-h-10",
         className
       )}
     >
       {!isHorizontal ? (
-        <SlidingLiquidPill top={indicator.top} visible={indicator.visible} />
+        <SlidingPill top={indicator.top} visible={indicator.visible} />
       ) : null}
 
       <div
         className={cn(
           "flex w-full",
-          isHorizontal ? "flex-row gap-1" : "flex-col gap-2"
+          isHorizontal ? "flex-row gap-0.5" : "flex-col gap-1"
         )}
       >
         {mainItems.map(renderItem)}

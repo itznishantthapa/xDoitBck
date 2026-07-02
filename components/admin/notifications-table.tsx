@@ -36,6 +36,7 @@ import {
   useInfiniteNotificationsQuery,
   useResendSystemNotificationMutation,
 } from "@/hooks/query";
+import { shopifyAdminCard, shopifyAdminCardFooter } from "@/lib/colors";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
 
@@ -158,10 +159,10 @@ export function NotificationsTable({ pageSize = 5 }: NotificationsTableProps) {
 
   return (
     <>
-      <Card className="flex min-h-0 flex-1 flex-col pt-0">
-        <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="grid gap-1">
-            <CardTitle className="text-base">Notifications</CardTitle>
+      <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+        <CardHeader className="flex shrink-0 flex-col gap-3 space-y-0 border-b py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="grid gap-0.5">
+            <CardTitle>Notifications</CardTitle>
             <CardDescription>
               Broadcast messages sent to all users
             </CardDescription>
@@ -239,7 +240,7 @@ export function NotificationsTable({ pageSize = 5 }: NotificationsTableProps) {
           </Table>
         </CardContent>
 
-        <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
+        <CardFooter className={shopifyAdminCardFooter}>
           <p className="text-xs text-muted-foreground">
             Showing {rangeStart}-{rangeEnd} of {totalCount} notifications
             {isFetchingNextPage ? " · Loading more..." : ""}

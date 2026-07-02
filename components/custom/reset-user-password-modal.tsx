@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
+import { modalTokens, TEXT_DARK } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 export type ResetUserPasswordModalProps = {
@@ -87,42 +87,28 @@ export function ResetUserPasswordModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      className={modalTokens.overlay}
       role="dialog"
       aria-modal="true"
       aria-label="Reset user password"
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-md cursor-default gap-0 border-0 py-0 shadow-2xl ring-1 ring-foreground/10"
+        className={modalTokens.card}
         onClick={(event) => event.stopPropagation()}
       >
-        <CardHeader className="items-center space-y-0 px-6 pb-2 pt-7 text-center">
-          <CardTitle
-            className="text-lg font-bold tracking-tight"
-            style={{ color: TEXT_DARK }}
-          >
-            Reset password
-          </CardTitle>
-
-          <div
-            className="mx-auto mt-2 h-1 w-44 rounded-full"
-            style={{ backgroundColor: TEXT_DARK }}
-          />
-
-          <CardDescription
-            className="mt-4 text-sm leading-relaxed font-medium"
-            style={{ color: TEXT_MUTED }}
-          >
+        <CardHeader className={modalTokens.header}>
+          <CardTitle className={modalTokens.title}>Reset password</CardTitle>
+          <CardDescription className={modalTokens.description}>
             Set a new password for {username}.
           </CardDescription>
         </CardHeader>
 
-        <div className="space-y-3 px-6 pb-2">
-          <div className="grid gap-1.5 text-left">
+        <div className="space-y-3 px-5 pb-1">
+          <div className="grid gap-1 text-left">
             <label
               htmlFor="new-password"
-              className="text-sm font-medium text-foreground"
+              className="text-[13px] font-medium text-foreground"
             >
               New password
             </label>
@@ -135,15 +121,15 @@ export function ResetUserPasswordModal({
                 setPassword(event.target.value);
                 setValidationError("");
               }}
-              className="h-10 rounded-lg"
+              className="h-8 rounded-lg text-[13px]"
               placeholder="Enter new password"
             />
           </div>
 
-          <div className="grid gap-1.5 text-left">
+          <div className="grid gap-1 text-left">
             <label
               htmlFor="confirm-password"
-              className="text-sm font-medium text-foreground"
+              className="text-[13px] font-medium text-foreground"
             >
               Confirm password
             </label>
@@ -156,23 +142,23 @@ export function ResetUserPasswordModal({
                 setConfirmPassword(event.target.value);
                 setValidationError("");
               }}
-              className="h-10 rounded-lg"
+              className="h-8 rounded-lg text-[13px]"
               placeholder="Confirm new password"
             />
           </div>
 
           {displayError ? (
-            <p className="text-left text-sm font-medium text-[#f03063]">
+            <p className="text-left text-xs font-medium text-[#f03063]">
               {displayError}
             </p>
           ) : null}
         </div>
 
-        <CardFooter className="mt-3 gap-2.5 border-t border-border/60 bg-white px-6 py-4">
+        <CardFooter className={modalTokens.footer}>
           <Button
             type="button"
             variant="outline"
-            className="h-9 min-w-0 flex-1 rounded-lg border-border/80 bg-white text-sm font-medium text-foreground shadow-none hover:bg-muted/40"
+            className={modalTokens.cancelButton}
             onClick={onClose}
             disabled={isPending}
           >
@@ -180,9 +166,7 @@ export function ResetUserPasswordModal({
           </Button>
           <Button
             type="button"
-            className={cn(
-              "h-9 min-w-0 flex-1 rounded-lg text-sm font-medium text-white shadow-none hover:opacity-90"
-            )}
+            className={cn(modalTokens.confirmButton)}
             style={{ backgroundColor: TEXT_DARK }}
             onClick={handleUpdate}
             disabled={isPending}

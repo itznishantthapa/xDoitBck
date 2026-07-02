@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import {
@@ -17,7 +17,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import { SidebarAnimatedNav } from "@/components/layout/sidebar-liquid-nav";
-import { AdminPageTitle } from "@/components/layout/admin-page-title";
+import { AdminPageHeader } from "@/components/layout/admin-page-header";
 import { ConfirmationModal } from "@/components/custom/confirmation-modal";
 import {
   Tooltip,
@@ -27,16 +27,12 @@ import {
 } from "@/components/ui/tooltip";
 import {
   adminTokens,
-  BG_SIDEBAR,
   BOOKED_TEXT,
-  TEXT_DARK,
-  WHITE,
+  shopifyCardSurface,
 } from "@/lib/colors";
 import { routes, getActiveAdminNavHref, isAssignmentDetailsPath, isUserDetailsPath } from "@/lib/routes";
 import { useBadgeNumbersQuery, useLogoutMutation } from "@/hooks/query";
 import { cn } from "@/lib/utils";
-
-const brand = "Doit.";
 
 const navigation = [
   {
@@ -115,42 +111,14 @@ function getPageTitle(pathname: string) {
   return pageTitles[pathname] ?? "Dashboard";
 }
 
-function AppIcon({
-  icon,
-  className,
-  color = "currentColor",
-  size = 20,
-  strokeWidth = 1.75,
-}: {
-  icon: IconSvgElement;
-  className?: string;
-  color?: string;
-  size?: number;
-  strokeWidth?: number;
-}) {
-  return (
-    <HugeiconsIcon
-      icon={icon}
-      size={size}
-      color={color}
-      strokeWidth={strokeWidth}
-      className={cn("shrink-0", className)}
-    />
-  );
-}
-
 function NavIconButton({
   label,
   icon,
   onClick,
-  iconColor = WHITE,
-  hoverClassName = "hover:bg-white/10",
 }: {
   label: string;
   icon: IconSvgElement;
   onClick: () => void;
-  iconColor?: string;
-  hoverClassName?: string;
 }) {
   return (
     <Tooltip>
@@ -159,12 +127,14 @@ function NavIconButton({
           type="button"
           aria-label={label}
           onClick={onClick}
-          className={cn(
-            "flex h-11 w-full cursor-pointer items-center justify-center rounded-xl transition-colors",
-            hoverClassName
-          )}
+          className="flex h-10 w-full cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-black/4"
         >
-          <AppIcon icon={icon} size={20} color={iconColor} />
+          <HugeiconsIcon
+            icon={icon}
+            size={18}
+            color={BOOKED_TEXT}
+            strokeWidth={1.75}
+          />
         </button>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={12}>
@@ -186,7 +156,6 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     pathname,
     searchParams.get("from")
   );
-  const isDashboard = pathname === routes.admin.dashboard;
   const navBadges = {
     assignments: badgeNumbers?.inReviewAssignments ?? 0,
     working: badgeNumbers?.workingAssignments ?? 0,
@@ -200,59 +169,64 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider delayDuration={200}>
       <div
-        className="flex min-h-svh w-full flex-col lg:flex-row"
-        style={{ backgroundColor: WHITE }}
+        className="flex min-h-svh max-h-svh w-full flex-col gap-3 p-3"
+        style={{ backgroundColor: adminTokens.pageBg }}
       >
-        <aside className="sticky top-0 z-20 hidden h-svh w-23 shrink-0 justify-center overflow-visible py-4 pl-4 lg:flex">
-          <nav
-            aria-label="Admin navigation"
-            className={cn(
-              "flex h-[calc(100svh-2rem)] w-23 flex-col overflow-visible py-4 rounded-l-3xl",
-            )}
-            style={{ backgroundColor: BG_SIDEBAR }}
-          >
-            <Link
-              href={routes.admin.dashboard}
-              prefetch={false}
-              draggable={false}
-              onDragStart={(event) => event.preventDefault()}
-              aria-label={brand}
+        <AdminPageHeader title={title} />
+
+        <div className="flex min-h-0 flex-1 items-stretch gap-3">
+          <aside className="z-20 hidden w-[60px] shrink-0 lg:flex">
+            <nav
+              aria-label="Admin navigation"
               className={cn(
-                "mx-auto mb-6 block shrink-0 select-none overflow-hidden",
-                adminTokens.sidebarLogoRadius
+                "flex h-full w-full flex-col items-center py-2",
+                shopifyCardSurface,
+                adminTokens.sidebarTube
               )}
             >
-              <Image
-                src="/logo.png"
-                alt={brand}
-                width={50}
-                height={50}
+              <Link
+                href={routes.admin.dashboard}
+                prefetch={false}
                 draggable={false}
-                className={cn("size-11 object-cover", adminTokens.sidebarLogoRadius)}
-                priority
-              />
-            </Link>
+                onDragStart={(event) => event.preventDefault()}
+                aria-label="Doit. home"
+                className="mb-2 flex h-8 w-full shrink-0 items-center justify-center select-none"
+              >
+                <Image
+                  src="/logo.png"
+                  alt="Doit."
+                  width={28}
+                  height={28}
+                  priority
+                  className="size-7 rounded-md object-cover"
+                />
+              </Link>
 
-            <div className="relative flex min-h-0 flex-1 flex-col overflow-visible pl-2">
-              <SidebarAnimatedNav
-                mainItems={navigation}
-                activeHref={activeNavHref}
-                icons={navIcons}
-                badges={navBadges}
-              />
-            </div>
+              <div className="flex min-h-0 w-full flex-1 flex-col justify-center overflow-visible px-1.5">
+                <SidebarAnimatedNav
+                  mainItems={navigation}
+                  activeHref={activeNavHref}
+                  icons={navIcons}
+                  badges={navBadges}
+                />
+              </div>
 
-            <div className="mt-4 shrink-0 pl-2">
-              <NavIconButton
-                label="Log out"
-                icon={Logout01Icon}
-                onClick={() => setIsLogoutModalOpen(true)}
-                hoverClassName=""
-                iconColor={BOOKED_TEXT}
-              />
+              <div className="w-full shrink-0 px-1.5 pb-0.5">
+                <NavIconButton
+                  label="Log out"
+                  icon={Logout01Icon}
+                  onClick={() => setIsLogoutModalOpen(true)}
+                />
+              </div>
+            </nav>
+          </aside>
+
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom,0px))] lg:overflow-hidden lg:pb-0">
+              {children}
             </div>
-          </nav>
-        </aside>
+          </main>
+        </div>
 
         <ConfirmationModal
           open={isLogoutModalOpen}
@@ -269,23 +243,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ariaLabel="Confirm log out"
         />
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col lg:h-svh lg:overflow-hidden">
-          {!isDashboard ? (
-            <header className="shrink-0 px-4 pb-2 pt-5 md:px-8 md:pt-7">
-              <AdminPageTitle title={title} />
-            </header>
-          ) : null}
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] pt-1 md:px-8 lg:overflow-hidden lg:pb-4">
-            {children}
-          </div>
-        </main>
-
         <nav
           aria-label="Admin navigation"
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 lg:hidden"
-          style={{ backgroundColor: BG_SIDEBAR }}
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white lg:hidden",
+            shopifyCardSurface,
+            "rounded-none border-x-0 border-b-0 shadow-[0_-4px_16px_rgba(0,0,0,0.06)]"
+          )}
         >
-          <div className="flex items-stretch px-1 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-stretch px-1 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
             <div className="relative min-w-0 flex-1 px-1">
               <SidebarAnimatedNav
                 mainItems={navigation}
@@ -299,9 +265,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               type="button"
               aria-label="Log out"
               onClick={() => setIsLogoutModalOpen(true)}
-              className="flex h-14 w-14 shrink-0 cursor-pointer items-center justify-center rounded-xl transition-colors"
+              className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/4"
             >
-              <AppIcon icon={Logout01Icon} size={20} color={BOOKED_TEXT} />
+              <HugeiconsIcon
+                icon={Logout01Icon}
+                size={18}
+                color={BOOKED_TEXT}
+                strokeWidth={1.75}
+              />
             </button>
           </div>
         </nav>

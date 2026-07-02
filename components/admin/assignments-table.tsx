@@ -46,6 +46,7 @@ import {
 import { getAssignmentStatusStyle } from "@/lib/assignment-status";
 import { routes } from "@/lib/routes";
 import { playAddWorkingSound } from "@/lib/play-sound";
+import { shopifyAdminCard, shopifyAdminCardFooter } from "@/lib/colors";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
 
@@ -237,10 +238,10 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
   }
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col pt-0">
-      <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 border-b py-4">
-        <div className="grid gap-1">
-          <CardTitle className="text-base">All Assignments</CardTitle>
+    <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+      <CardHeader className="flex shrink-0 flex-col gap-3 space-y-0 border-b py-3">
+        <div className="grid gap-0.5">
+          <CardTitle>All Assignments</CardTitle>
           <CardDescription>
             Track assignment progress, payments, and delivery dates
           </CardDescription>
@@ -253,7 +254,7 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
         </p>
       ) : null}
 
-      <div className="flex shrink-0 flex-wrap gap-2 border-b px-4 py-3">
+      <div className="flex shrink-0 flex-wrap gap-1.5 border-b px-3 py-2.5">
         {statusTabs.map((tab) => {
           const isActive = statusFilter === tab.value;
 
@@ -383,7 +384,7 @@ export function AssignmentsTable({ pageSize = 8 }: AssignmentsTableProps) {
         </Table>
       </CardContent>
 
-      <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
+      <CardFooter className={shopifyAdminCardFooter}>
         <p className="text-xs text-muted-foreground">
           Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
           {isFetchingNextPage ? " · Loading more..." : ""}

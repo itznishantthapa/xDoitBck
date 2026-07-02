@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TEXT_DARK, TEXT_MUTED } from "@/lib/colors";
+import { modalTokens, TEXT_DARK } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 const SUCCESS = "#08d203";
@@ -70,51 +70,35 @@ export function ConfirmationModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+      className={modalTokens.overlay}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-md cursor-default gap-0 border-0 py-0 shadow-2xl ring-1 ring-foreground/10"
+        className={modalTokens.card}
         onClick={(event) => event.stopPropagation()}
       >
-        <CardHeader className="items-center space-y-0 px-6 pb-2 pt-7 text-center">
-          <CardTitle
-            className="text-lg font-bold tracking-tight"
-            style={{ color: TEXT_DARK }}
-          >
-            {title}
-          </CardTitle>
-
-          <div
-            className="mx-auto mt-2 h-1 w-44 rounded-full"
-            style={{ backgroundColor: accentColor }}
-          />
-
-          <CardDescription
-            className="mt-4 text-sm leading-relaxed font-medium"
-            style={{ color: TEXT_MUTED }}
-          >
+        <CardHeader className={modalTokens.header}>
+          <CardTitle className={modalTokens.title}>{title}</CardTitle>
+          <CardDescription className={modalTokens.description}>
             {subtitle}
           </CardDescription>
         </CardHeader>
 
-        <CardFooter className="mt-3 gap-2.5 border-t border-border/60 bg-white px-6 py-4">
+        <CardFooter className={modalTokens.footer}>
           <Button
             type="button"
             variant="outline"
-            className="h-9 min-w-0 flex-1 rounded-lg border-border/80 bg-white text-sm font-medium text-foreground shadow-none hover:bg-muted/40"
+            className={modalTokens.cancelButton}
             onClick={onClose}
           >
             {cancelLabel}
           </Button>
           <Button
             type="button"
-            className={cn(
-              "h-9 min-w-0 flex-1 rounded-lg text-sm font-medium text-white shadow-none hover:opacity-90"
-            )}
+            className={cn(modalTokens.confirmButton)}
             style={{ backgroundColor: accentColor }}
             onClick={onConfirm}
           >

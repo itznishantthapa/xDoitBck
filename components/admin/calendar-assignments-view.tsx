@@ -24,6 +24,7 @@ import {
   getCalendarAssignmentsForDate,
   type CalendarAssignmentKind,
 } from "@/lib/calendar-utils";
+import { shopifyAdminCard } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
@@ -93,9 +94,8 @@ function AssignmentFolderItem({
 
         <div
           className={cn(
-            "relative overflow-hidden rounded-[1.25rem] rounded-tl-md",
-            theme.folder,
-  
+            "relative overflow-hidden rounded-[20px] shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.05)]",
+            theme.folder
           )}
         >
           <div className="absolute inset-x-0 top-0 h-8 bg-white/10" />
@@ -182,19 +182,19 @@ export function CalendarAssignmentsView({
         Back to calendar
       </Button>
 
-      <Card size="sm" className="overflow-hidden pt-0">
-        <CardHeader className="space-y-1 border-b py-4">
-          <CardTitle className="text-base font-medium">{config.title}</CardTitle>
+      <Card size="sm" className={cn("gap-0", shopifyAdminCard)}>
+        <CardHeader className="space-y-0.5 border-b py-3">
+          <CardTitle className="font-medium">{config.title}</CardTitle>
           <CardDescription>{config.description}</CardDescription>
           <p className="pt-1 text-sm font-medium text-foreground">{formattedDate}</p>
         </CardHeader>
 
-        <CardContent className={cn("py-5", config.theme.pageBg)}>
+        <CardContent className={cn("py-4", config.theme.pageBg)}>
           {assignments.length === 0 ? (
             <div
               className={cn(
-                "rounded-[1.25rem] px-4 py-10 text-center",
-                config.theme.folder,
+                "rounded-[20px] px-4 py-10 text-center shadow-[0_0_0_1px_rgba(0,0,0,0.03),0_1px_2px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.05)]",
+                config.theme.folder
               )}
             >
               <div
@@ -217,7 +217,7 @@ export function CalendarAssignmentsView({
               </p>
             </div>
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {assignments.map((assignment) => (
                 <AssignmentFolderItem
                   key={assignment.id}

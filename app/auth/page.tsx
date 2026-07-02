@@ -24,14 +24,13 @@ import { cn } from "@/lib/utils";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
 
-const SUCCESS = "#08d203";
 const REJECT = "#f03063";
 
 type AuthStep = "credentials" | "totp_setup" | "totp_verify";
 
 const inputClassName = cn(
-  "h-11 rounded-xl border-0 bg-background text-sm font-medium shadow-none ring-1 ring-foreground/10",
-  "placeholder:text-muted-foreground focus-visible:border-0 focus-visible:ring-1 focus-visible:ring-foreground/20"
+  "h-9 rounded-lg border border-input bg-background text-[13px] font-normal shadow-none",
+  "placeholder:text-muted-foreground focus-visible:border-foreground/30 focus-visible:ring-2 focus-visible:ring-foreground/10"
 );
 
 export default function AuthPage() {
@@ -145,31 +144,26 @@ export default function AuthPage() {
   const showQr = step === "totp_setup" && Boolean(otpauthUri);
 
   return (
-    <Card className="gap-0 border-0 py-0 shadow-2xl ring-1 ring-foreground/10">
-      <CardHeader className="items-center space-y-0 px-6 pb-2 pt-8 text-center">
+    <Card className="gap-0 border border-border py-0 shadow-lg">
+      <CardHeader className="items-center space-y-0 px-5 pb-2 pt-6 text-center">
         <CardTitle
-          className="flex items-center justify-center gap-2 text-2xl font-bold tracking-tight"
+          className="flex items-center justify-center gap-2 text-lg font-semibold tracking-tight"
           style={{ color: TEXT_DARK }}
         >
           <span>Doit.</span>
           <Image
             src="/leaficon.png"
             alt=""
-            width={32}
-            height={32}
+            width={28}
+            height={28}
             priority
             aria-hidden
-            className="size-7 shrink-0 object-contain"
+            className="size-6 shrink-0 object-contain"
           />
         </CardTitle>
 
-        <div
-          className="mx-auto mt-2 h-1 w-44 rounded-full"
-          style={{ backgroundColor: SUCCESS }}
-        />
-
         <CardDescription
-          className="mt-4 text-sm font-medium leading-relaxed"
+          className="mt-2 text-[13px] leading-relaxed"
           style={{ color: TEXT_MUTED }}
         >
           {isTotpStep
@@ -180,13 +174,13 @@ export default function AuthPage() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="px-6 pb-8 pt-2">
+      <CardContent className="px-5 pb-6 pt-2">
         {!isTotpStep ? (
-          <form onSubmit={handleLoginSubmit} className="space-y-5" noValidate>
-            <div className="space-y-2">
+          <form onSubmit={handleLoginSubmit} className="space-y-4" noValidate>
+            <div className="space-y-1.5">
               <label
                 htmlFor="username"
-                className="block text-sm font-semibold tracking-tight"
+                className="block text-[13px] font-medium"
                 style={{ color: TEXT_DARK }}
               >
                 Username
@@ -214,10 +208,10 @@ export default function AuthPage() {
               ) : null}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label
                 htmlFor="password"
-                className="block text-sm font-semibold tracking-tight"
+                className="block text-[13px] font-medium"
                 style={{ color: TEXT_DARK }}
               >
                 Password
@@ -254,26 +248,26 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={isPending}
-              className="h-11 w-full rounded-lg text-sm font-semibold tracking-tight text-white shadow-none hover:opacity-90 disabled:opacity-70"
+              className="h-9 w-full rounded-lg text-[13px] font-medium text-white shadow-none hover:opacity-90 disabled:opacity-70"
               style={{ backgroundColor: BG_SIDEBAR }}
             >
               {isPending ? "Authenticating..." : "Sign in"}
             </Button>
           </form>
         ) : (
-          <form onSubmit={handleTotpSubmit} className="space-y-5" noValidate>
+          <form onSubmit={handleTotpSubmit} className="space-y-4" noValidate>
             {showQr ? (
-              <div className="flex flex-col items-center rounded-xl bg-background p-4 ring-1 ring-foreground/10">
-                <div className="rounded-lg bg-white p-3">
-                  <QRCode value={otpauthUri!} size={180} />
+              <div className="flex flex-col items-center rounded-lg border border-border bg-muted/30 p-3">
+                <div className="rounded-md bg-white p-2">
+                  <QRCode value={otpauthUri!} size={160} />
                 </div>
               </div>
             ) : null}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label
                 htmlFor="otp"
-                className="block text-sm font-semibold tracking-tight"
+                className="block text-[13px] font-medium"
                 style={{ color: TEXT_DARK }}
               >
                 Verification code
@@ -294,7 +288,7 @@ export default function AuthPage() {
                 }}
                 className={cn(
                   inputClassName,
-                  "text-center text-lg tracking-[0.35em]",
+                  "text-center text-base tracking-[0.3em]",
                   otpError && "ring-[#f03063] focus-visible:ring-[#f03063]"
                 )}
               />
@@ -314,7 +308,7 @@ export default function AuthPage() {
             <Button
               type="submit"
               disabled={isPending}
-              className="h-11 w-full rounded-lg text-sm font-semibold tracking-tight text-white shadow-none hover:opacity-90 disabled:opacity-70"
+              className="h-9 w-full rounded-lg text-[13px] font-medium text-white shadow-none hover:opacity-90 disabled:opacity-70"
               style={{ backgroundColor: BG_SIDEBAR }}
             >
               {isPending ? "Verifying..." : "Verify"}

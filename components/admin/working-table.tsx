@@ -35,6 +35,7 @@ import {
   useRemoveFromWorkingMutation,
 } from "@/hooks/query";
 import { getAssignmentStatusStyle } from "@/lib/assignment-status";
+import { shopifyAdminCard, shopifyAdminCardFooter } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { playRemoveSound } from "@/lib/play-sound";
 import { getApiErrorMessage } from "@/service/client";
@@ -201,10 +202,12 @@ export function WorkingTable({ pageSize = 8 }: WorkingTableProps) {
   }
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col pt-0">
-      <CardHeader className="shrink-0 space-y-0 border-b py-4">
-        <CardTitle className="text-base">Working Assignments</CardTitle>
-        <CardDescription>Your currently added assignment tasks</CardDescription>
+    <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+      <CardHeader className="shrink-0 space-y-0 border-b py-3">
+        <div className="grid gap-0.5">
+          <CardTitle>Working Assignments</CardTitle>
+          <CardDescription>Your currently added assignment tasks</CardDescription>
+        </div>
       </CardHeader>
 
       {actionError ? (
@@ -290,7 +293,7 @@ export function WorkingTable({ pageSize = 8 }: WorkingTableProps) {
         </Table>
       </CardContent>
 
-      <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
+      <CardFooter className={shopifyAdminCardFooter}>
         <p className="text-xs text-muted-foreground">
           Showing {rangeStart}-{rangeEnd} of {totalCount} assignments
           {isFetchingNextPage ? " · Loading more..." : ""}

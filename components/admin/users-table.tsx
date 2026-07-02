@@ -43,6 +43,7 @@ import {
   useResetUserPasswordMutation,
   useSearchUsersQuery,
 } from "@/hooks/query";
+import { shopifyAdminCard, shopifyAdminCardFooter } from "@/lib/colors";
 import { routes } from "@/lib/routes";
 import { getApiErrorMessage } from "@/service/client";
 import { cn } from "@/lib/utils";
@@ -249,10 +250,10 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
   }
 
   return (
-    <Card className="flex min-h-0 flex-1 flex-col pt-0">
-      <CardHeader className="flex shrink-0 flex-col gap-4 space-y-0 border-b py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="grid gap-1">
-          <CardTitle className="text-base">All Users</CardTitle>
+    <Card className={cn("min-h-0 flex-1", shopifyAdminCard)}>
+      <CardHeader className="flex shrink-0 flex-col gap-3 space-y-0 border-b py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="grid gap-0.5">
+          <CardTitle>All Users</CardTitle>
           <CardDescription>
             Manage user accounts, roles, and access status
           </CardDescription>
@@ -357,7 +358,7 @@ export function UsersTable({ pageSize = 8 }: UsersTableProps) {
         </Table>
       </CardContent>
 
-      <CardFooter className="shrink-0 items-center justify-between border-t bg-muted/30 px-4 py-3">
+      <CardFooter className={shopifyAdminCardFooter}>
         <p className="text-xs text-muted-foreground">
           Showing {rangeStart}-{rangeEnd} of {totalCount} users
           {isSearching

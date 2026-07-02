@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { shopifyAdminCard } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 
 const chartConfig = {
@@ -48,14 +49,14 @@ export function AssignmentCompletionAreaChart({
   className,
 }: AssignmentCompletionAreaChartProps) {
   return (
-    <Card className={cn("flex min-h-0 flex-col pt-0", className)}>
-      <CardHeader className="shrink-0 space-y-0 border-b py-4">
-        <div className="grid gap-1">
-          <CardTitle className="text-base">{data.title}</CardTitle>
+    <Card className={cn("min-h-0", shopifyAdminCard, className)}>
+      <CardHeader className="shrink-0 space-y-0 border-b py-3">
+        <div className="grid gap-0.5">
+          <CardTitle>{data.title}</CardTitle>
           <CardDescription>{data.description}</CardDescription>
         </div>
       </CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col px-2 pt-4 pb-4 sm:px-6 sm:pt-6">
+      <CardContent className="flex min-h-0 flex-1 flex-col px-2 pt-3 pb-3 sm:px-4 sm:pt-4">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto min-h-[160px] w-full flex-1"
